@@ -5,12 +5,34 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
+// Pages
+import Welcome from "@/pages/Welcome";
+import RoleSelection from "@/pages/RoleSelection";
+import AuthCitizen from "@/pages/AuthCitizen";
+import AuthPolice from "@/pages/AuthPolice";
+import CitizenDashboard from "@/pages/CitizenDashboard";
+import CitizenReport from "@/pages/CitizenReport";
+import PoliceDashboard from "@/pages/PoliceDashboard";
+
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      {/* Public Routes */}
+      <Route path="/" component={Welcome} />
+      <Route path="/role-selection" component={RoleSelection} />
+      
+      {/* Auth Routes */}
+      <Route path="/auth/citizen" component={AuthCitizen} />
+      <Route path="/auth/police" component={AuthPolice} />
+      
+      {/* Protected Citizen Routes */}
+      <Route path="/citizen/dashboard" component={CitizenDashboard} />
+      <Route path="/citizen/report" component={CitizenReport} />
+      
+      {/* Protected Police Routes */}
+      <Route path="/police/dashboard/:role" component={PoliceDashboard} />
+      
+      {/* Fallback */}
       <Route component={NotFound} />
     </Switch>
   );

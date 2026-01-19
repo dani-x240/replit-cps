@@ -11,6 +11,14 @@ export default {
         sm: ".1875rem", /* 3px */
       },
       colors: {
+        citizen: {
+          DEFAULT: "hsl(var(--citizen))",
+          foreground: "hsl(var(--citizen-foreground))",
+        },
+        police: {
+          DEFAULT: "hsl(var(--police))",
+          foreground: "hsl(var(--police-foreground))",
+        },
         // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
@@ -86,6 +94,8 @@ export default {
         sans: ["var(--font-sans)"],
         serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
+        display: ["'Outfit'", "sans-serif"],
+        body: ["'DM Sans'", "sans-serif"],
       },
       keyframes: {
         "accordion-down": {
