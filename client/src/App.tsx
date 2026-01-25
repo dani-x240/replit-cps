@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 // Pages
 import Welcome from "@/pages/Welcome";
 import RoleSelection from "@/pages/RoleSelection";
+import PoliceRoles from "@/pages/PoliceRoles";
 import AuthCitizen from "@/pages/AuthCitizen";
 import AuthPolice from "@/pages/AuthPolice";
 import CitizenDashboard from "@/pages/CitizenDashboard";
@@ -20,6 +21,7 @@ function Router() {
       {/* Public Routes */}
       <Route path="/" component={Welcome} />
       <Route path="/role-selection" component={RoleSelection} />
+      <Route path="/police/roles" component={PoliceRoles} />
       
       {/* Auth Routes */}
       <Route path="/auth/citizen" component={AuthCitizen} />

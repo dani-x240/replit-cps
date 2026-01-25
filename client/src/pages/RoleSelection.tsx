@@ -39,11 +39,11 @@ export default function RoleSelection() {
           transition={{ delay: 0.2 }}
         >
           <RoleCard
-            title="Police Officer"
+            title="Police Force"
             description="Restricted access for authorized personnel only."
             icon={ShieldAlert}
             color="police"
-            onClick={() => setLocation("/auth/police")}
+            onClick={() => setLocation("/police/roles")}
           />
         </motion.div>
       </div>
