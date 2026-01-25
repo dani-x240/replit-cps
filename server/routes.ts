@@ -194,45 +194,75 @@ export async function registerRoutes(
 }
 
 async function seedDatabase() {
-  const existingAlerts = await storage.getAlerts();
-  if (existingAlerts.length === 0) {
-    // Create Admin User
-    const admin = await storage.createUser({
-      username: "admin",
+  const existingUsers = await storage.getUserByUsername("admin");
+  if (!existingUsers) {
+    // 1. Citizen Demo
+    await storage.createUser({
+      username: "citizen_demo",
       password: "password123",
-      fullName: "System Admin",
-      role: "admin",
-      email: "admin@cps.ug",
+      fullName: "John Citizen",
+      role: "citizen",
+      phone: "0700123456",
+      nin: "CM123456789012",
+      district: "Kampala",
+      parish: "Central",
       isVerified: true
     });
 
-    // Create Police Users
+    // 2. IO Demo
     await storage.createUser({
-      username: "officer1",
+      username: "io_demo",
       password: "password123",
-      fullName: "Afande Kintu",
+      fullName: "Sgt. Sarah Namuli",
       role: "police_io",
-      email: "kintu@police.ug",
+      email: "sarah.n@police.ug",
+      phone: "0772111222",
       stationId: "CPS-KAMPALA",
       isVerified: true
     });
 
-    // Create Alerts
-    await storage.createAlert({
-      title: "Missing Person: John Doe",
-      content: "Last seen in downtown Kampala wearing a blue shirt.",
-      type: "missing_person",
-      severity: "warning",
-      location: "Kampala Road",
-      createdById: admin.id
+    // 3. OC Demo
+    await storage.createUser({
+      username: "oc_demo",
+      password: "password123",
+      fullName: "Insp. David Okello",
+      role: "police_oc",
+      email: "david.o@police.ug",
+      phone: "0782333444",
+      stationId: "CPS-KAMPALA",
+      isVerified: true
     });
-    
+
+    // 4. DPC Demo
+    await storage.createUser({
+      username: "dpc_demo",
+      password: "password123",
+      fullName: "SSP. Moses Mukasa",
+      role: "police_dpc",
+      email: "moses.m@police.ug",
+      phone: "0752555666",
+      stationId: "KAMPALA-METRO",
+      isVerified: true
+    });
+
+    // 5. Admin Demo
+    const admin = await storage.createUser({
+      username: "admin",
+      password: "password123",
+      fullName: "CPS Administrator",
+      role: "admin",
+      email: "admin@cps.ug",
+      phone: "0700000000",
+      isVerified: true
+    });
+
+    // Create Initial Alerts
     await storage.createAlert({
-      title: "Traffic Alert: Jinja Road",
-      content: "Heavy traffic jam near Nakawa junction due to road works.",
-      type: "traffic",
-      severity: "info",
-      location: "Nakawa",
+      title: "Security Alert: Night Patrols",
+      content: "Increased night patrols in Nakawa area starting 10PM.",
+      type: "warning",
+      severity: "warning",
+      location: "Nakawa Division",
       createdById: admin.id
     });
   }

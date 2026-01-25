@@ -1,101 +1,95 @@
 import { useAuth } from "@/hooks/use-auth";
 import { MobileLayout } from "@/components/layout/MobileLayout";
+import { 
+  Siren, 
+  FileEdit, 
+  Briefcase, 
+  ShieldCheck, 
+  Map, 
+  Bell, 
+  FileText, 
+  MessageSquare, 
+  Settings,
+  LogOut,
+  ChevronRight
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AlertFeed } from "@/components/alerts/AlertFeed";
+import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { 
-  Bell, 
-  LogOut, 
-  Map, 
-  FileText, 
-  Siren, 
-  Shield, 
-  Upload, 
-  MessageSquare 
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 
 export default function CitizenDashboard() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
-
-  const handleSOS = () => {
-    // In a real app, this would trigger an immediate geolocation-tagged alert
-    toast({ 
-      title: "SOS TRIGGERED", 
-      description: "Police units in your area have been alerted with your location.",
-      variant: "destructive",
-      duration: 5000
-    });
-  };
 
   if (!user) return null;
 
   const menuItems = [
-    { label: "Report Crime", icon: Siren, color: "text-red-500", bg: "bg-red-50", onClick: () => setLocation("/citizen/report") },
-    { label: "My Cases", icon: FileText, color: "text-blue-500", bg: "bg-blue-50", onClick: () => setLocation("/citizen/cases") },
-    { label: "Evidence", icon: Upload, color: "text-purple-500", bg: "bg-purple-50", onClick: () => {} },
-    { label: "Safety Map", icon: Map, color: "text-green-500", bg: "bg-green-50", onClick: () => {} },
-    { label: "Police Chat", icon: MessageSquare, color: "text-orange-500", bg: "bg-orange-50", onClick: () => {} },
-    { label: "Settings", icon: Shield, color: "text-gray-500", bg: "bg-gray-50", onClick: () => {} },
+    { label: "Report Crime", icon: FileEdit, color: "green", path: "/citizen/report" },
+    { label: "My Cases", icon: Briefcase, color: "green", path: "/citizen/cases" },
+    { label: "Evidence Vault", icon: ShieldCheck, color: "green", path: "/citizen/vault" },
+    { label: "Safety Map", icon: Map, color: "green", path: "/citizen/map" },
+    { label: "Alerts Feed", icon: Bell, color: "green", path: "/citizen/alerts" },
+    { label: "Police Forms", icon: FileText, color: "green", path: "/citizen/forms" },
+    { label: "Chat Portal", icon: MessageSquare, color: "green", path: "/citizen/chat" },
+    { label: "Settings", icon: Settings, color: "green", path: "/citizen/settings" },
   ];
 
   return (
-    <MobileLayout>
-      <div className="bg-green-600 text-white p-6 pb-12 rounded-b-[2.5rem] shadow-xl relative z-10">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-lg font-bold">
-              {user.fullName?.[0] || "U"}
-            </div>
-            <div>
-              <p className="text-green-100 text-xs uppercase tracking-wider font-semibold">Welcome Back</p>
-              <h2 className="font-display font-bold text-xl">{user.username}</h2>
-            </div>
+    <MobileLayout className="bg-green-50/30 min-h-screen">
+      <div className="p-6 pt-12 pb-24">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-green-900">Hello, {user.fullName.split(' ')[0]}</h1>
+            <p className="text-sm text-green-700/70">Keep Uganda Safe</p>
           </div>
-          <div className="flex gap-2">
-            <Button size="icon" variant="ghost" className="text-white hover:bg-white/10 rounded-full">
-              <Bell className="w-5 h-5" />
-            </Button>
-            <Button size="icon" variant="ghost" className="text-white hover:bg-white/10 rounded-full" onClick={() => logout()}>
-              <LogOut className="w-5 h-5" />
-            </Button>
-          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => logout()}
+            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-6 h-6" />
+          </Button>
         </div>
 
         {/* SOS Button */}
-        <div className="flex justify-center mb-4">
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            className="w-32 h-32 rounded-full bg-red-600 shadow-[0_0_0_8px_rgba(220,38,38,0.3)] flex flex-col items-center justify-center text-white border-4 border-red-400"
-            onClick={handleSOS}
+        <motion.div
+          whileTap={{ scale: 0.95 }}
+          className="mb-8"
+        >
+          <Button 
+            className="w-full h-32 rounded-3xl bg-red-600 hover:bg-red-700 shadow-xl shadow-red-600/20 flex flex-col gap-2 group"
+            onClick={() => setLocation("/citizen/sos")}
           >
-            <span className="text-3xl font-black">SOS</span>
-            <span className="text-[10px] font-bold mt-1 uppercase">Press & Hold</span>
-          </motion.button>
-        </div>
-      </div>
+            <Siren className="w-12 h-12 text-white group-hover:animate-pulse" />
+            <span className="text-xl font-bold text-white uppercase tracking-wider">Emergency SOS</span>
+          </Button>
+        </motion.div>
 
-      <div className="px-6 -mt-8 relative z-20">
-        <div className="bg-white rounded-2xl p-6 shadow-lg mb-6 grid grid-cols-3 gap-6">
-          {menuItems.map((item, idx) => (
-            <button 
-              key={idx} 
-              onClick={item.onClick}
-              className="flex flex-col items-center gap-2 group"
+        {/* Grid Menu */}
+        <div className="grid grid-cols-2 gap-4">
+          {menuItems.map((item, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className={`w-12 h-12 rounded-2xl ${item.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
-                <item.icon className={`w-6 h-6 ${item.color}`} />
-              </div>
-              <span className="text-xs font-medium text-neutral-600 text-center leading-tight">{item.label}</span>
-            </button>
+              <Card 
+                className="border-green-100 shadow-sm cursor-pointer hover:border-green-300 transition-colors"
+                onClick={() => setLocation(item.path)}
+              >
+                <CardContent className="p-4 flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 bg-green-100 rounded-2xl flex items-center justify-center text-green-600">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <span className="text-sm font-semibold text-green-900">{item.label}</span>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
-
-        <h3 className="font-display font-bold text-lg mb-4 text-neutral-800">Community Alerts</h3>
-        <AlertFeed />
       </div>
     </MobileLayout>
   );
