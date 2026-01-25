@@ -70,8 +70,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateReport(id: number, updates: Partial<InsertReport>): Promise<Report> {
-    const [updated] = await db.update(reports).set(updates).where(eq(reports.id, id).as(sql`id`)).returning(); // .as(sql`id`) workaround if needed, but eq(reports.id, id) is standard
-    // Wait, Drizzle update syntax:
     const [report] = await db.update(reports).set(updates).where(eq(reports.id, id)).returning();
     return report;
   }

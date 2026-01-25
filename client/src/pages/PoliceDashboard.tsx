@@ -22,9 +22,9 @@ import { useAlerts } from "@/hooks/use-alerts";
 import { motion } from "framer-motion";
 
 export default function PoliceDashboard() {
-  const { user, logoutMutation } = useAuth();
-  const { reports } = useReports();
-  const { alerts } = useAlerts();
+  const { user, logout } = useAuth();
+  const { data: reports } = useReports();
+  const { data: alerts } = useAlerts();
 
   if (!user) return null;
 
@@ -113,7 +113,7 @@ export default function PoliceDashboard() {
           <Button 
             variant="ghost" 
             size="icon" 
-            onClick={() => logoutMutation.mutate()}
+            onClick={() => logout()}
             className="text-red-500 hover:text-red-600 hover:bg-red-50"
           >
             <LogOut className="w-6 h-6" />
@@ -140,7 +140,7 @@ export default function PoliceDashboard() {
               <AlertTriangle className="w-4 h-4 text-amber-500" /> Recent Alerts
             </h2>
             <div className="space-y-3">
-              {alerts.slice(0, 2).map((alert) => (
+              {alerts.slice(0, 2).map((alert: any) => (
                 <div key={alert.id} className="bg-white p-3 rounded-xl border border-blue-100 flex gap-3 items-start">
                   <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
                   <div>
