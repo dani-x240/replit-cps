@@ -7,23 +7,62 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { ArrowLeft, Loader2, Shield } from "lucide-react";
+import { ArrowLeft, Loader2, Shield, UserPlus, LogIn } from "lucide-react";
+import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
   password: z.string().min(1, "Password is required"),
 });
 
+const signupSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+  phone: z.string().min(1, "Phone number is required"),
+  stationId: z.string().min(1, "Station ID is required"),
+});
+
 export default function AuthPolice() {
-  const [, setLocation] = useLocation();
-  const { login, isLoggingIn } = useAuth();
-  const form = useForm({ resolver: zodResolver(loginSchema) });
+  const [location, setLocation] = useLocation();
+  const { login, register, isLoggingIn, isRegistering } = useAuth();
+  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  
+  // Get role from query param
+  const params = new URLSearchParams(window.location.search);
+  const role = params.get("role") || "police_io";
+
+  const loginForm = useForm({ 
+    resolver: zodResolver(loginSchema),
+    defaultValues: { username: "", password: "" }
+  });
+  
+  const signupForm = useForm({ 
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      fullName: "",
+      email: "",
+      phone: "",
+      stationId: "",
+    }
+  });
+
+  const roleLabels: Record<string, string> = {
+    police_io: "Investigating Officer",
+    police_oc: "Officer-in-Charge",
+    police_dpc: "District Commander",
+    admin: "System Admin"
+  };
 
   return (
     <MobileLayout>
       <div className="min-h-screen bg-blue-50/50">
-        <div className="p-6 pt-8">
-          <Button variant="ghost" className="pl-0 hover:bg-transparent" onClick={() => setLocation("/role-selection")}>
+        <div className="p-6 pt-8 pb-20">
+          <Button variant="ghost" className="pl-0 hover:bg-transparent" onClick={() => setLocation("/police/roles")}>
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back
           </Button>
@@ -32,27 +71,84 @@ export default function AuthPolice() {
             <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-4 text-blue-700">
               <Shield className="w-10 h-10" />
             </div>
-            <h1 className="text-3xl font-display font-bold text-blue-900 text-center">Police Portal</h1>
-            <p className="text-muted-foreground text-center">Restricted Access System</p>
+            <h1 className="text-3xl font-display font-bold text-blue-900 text-center">{roleLabels[role] || "Police Portal"}</h1>
+            <p className="text-muted-foreground text-center">Authorized Access Only</p>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
-            <form onSubmit={form.handleSubmit((d) => login(d))} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Badge Number / Username</Label>
-                <Input {...form.register("username")} className="h-12 rounded-xl border-blue-100 focus:border-blue-500 focus:ring-blue-500/20" />
-                {form.formState.errors.username && <span className="text-red-500 text-xs">{String(form.formState.errors.username.message)}</span>}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8 bg-blue-100/50 p-1 rounded-xl">
+              <TabsTrigger value="login" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">
+                <LogIn className="w-4 h-4 mr-2" />
+                Login
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-lg data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Sign Up
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="login">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
+                <form onSubmit={loginForm.handleSubmit((d) => login(d))} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Username / Badge ID</Label>
+                    <Input {...loginForm.register("username")} className="h-12 rounded-xl border-blue-100 focus:border-blue-500" />
+                    {loginForm.formState.errors.username && <span className="text-red-500 text-xs">{loginForm.formState.errors.username.message}</span>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Password</Label>
+                    <Input type="password" {...loginForm.register("password")} className="h-12 rounded-xl border-blue-100 focus:border-blue-500" />
+                    {loginForm.formState.errors.password && <span className="text-red-500 text-xs">{loginForm.formState.errors.password.message}</span>}
+                  </div>
+                  <Button disabled={isLoggingIn} className="w-full h-12 rounded-xl bg-blue-700 hover:bg-blue-800 text-lg font-semibold">
+                    {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Secure Login"}
+                  </Button>
+                </form>
               </div>
-              <div className="space-y-2">
-                <Label>Password</Label>
-                <Input type="password" {...form.register("password")} className="h-12 rounded-xl border-blue-100 focus:border-blue-500 focus:ring-blue-500/20" />
-                {form.formState.errors.password && <span className="text-red-500 text-xs">{String(form.formState.errors.password.message)}</span>}
+            </TabsContent>
+
+            <TabsContent value="signup">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
+                <form onSubmit={signupForm.handleSubmit((d) => register({ ...d, role }))} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Full Name</Label>
+                    <Input {...signupForm.register("fullName")} className="h-12 rounded-xl border-blue-100" />
+                    {signupForm.formState.errors.fullName && <span className="text-red-500 text-xs">{signupForm.formState.errors.fullName.message}</span>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Username / Badge ID</Label>
+                    <Input {...signupForm.register("username")} className="h-12 rounded-xl border-blue-100" />
+                    {signupForm.formState.errors.username && <span className="text-red-500 text-xs">{signupForm.formState.errors.username.message}</span>}
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Phone Number</Label>
+                      <Input {...signupForm.register("phone")} className="h-12 rounded-xl border-blue-100" />
+                      {signupForm.formState.errors.phone && <span className="text-red-500 text-xs">{signupForm.formState.errors.phone.message}</span>}
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Station ID</Label>
+                      <Input {...signupForm.register("stationId")} className="h-12 rounded-xl border-blue-100" />
+                      {signupForm.formState.errors.stationId && <span className="text-red-500 text-xs">{signupForm.formState.errors.stationId.message}</span>}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Email Address</Label>
+                    <Input type="email" {...signupForm.register("email")} className="h-12 rounded-xl border-blue-100" />
+                    {signupForm.formState.errors.email && <span className="text-red-500 text-xs">{signupForm.formState.errors.email.message}</span>}
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Password</Label>
+                    <Input type="password" {...signupForm.register("password")} className="h-12 rounded-xl border-blue-100" />
+                    {signupForm.formState.errors.password && <span className="text-red-500 text-xs">{signupForm.formState.errors.password.message}</span>}
+                  </div>
+                  <Button disabled={isRegistering} className="w-full h-12 rounded-xl bg-blue-700 hover:bg-blue-800 text-lg font-semibold">
+                    {isRegistering ? <Loader2 className="w-5 h-5 animate-spin" /> : "Request Access"}
+                  </Button>
+                </form>
               </div>
-              <Button disabled={isLoggingIn} className="w-full h-12 rounded-xl bg-blue-700 hover:bg-blue-800 text-lg font-semibold shadow-lg shadow-blue-700/20">
-                {isLoggingIn ? <Loader2 className="w-5 h-5 animate-spin" /> : "Secure Login"}
-              </Button>
-            </form>
-          </div>
+            </TabsContent>
+          </Tabs>
           
           <p className="text-center text-xs text-muted-foreground mt-8">
             Unauthorized access is a criminal offense under the Computer Misuse Act.

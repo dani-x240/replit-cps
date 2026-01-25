@@ -1,105 +1,178 @@
 import { useAuth } from "@/hooks/use-auth";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { Button } from "@/components/ui/button";
-import { useReports } from "@/hooks/use-reports";
-import { useLocation, useRoute } from "wouter";
 import { 
-  LogOut, 
-  LayoutDashboard, 
+  Shield, 
   FileText, 
   Users, 
-  ShieldAlert,
+  AlertTriangle, 
+  MessageSquare, 
+  Settings,
+  BarChart,
+  LogOut,
   ChevronRight,
-  Clock,
-  MapPin
+  ClipboardCheck,
+  MapPin,
+  UserPlus
 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useReports } from "@/hooks/use-reports";
+import { useAlerts } from "@/hooks/use-alerts";
 import { motion } from "framer-motion";
 
 export default function PoliceDashboard() {
-  const { user, logout } = useAuth();
-  const { data: reports, isLoading } = useReports();
-  const [, params] = useRoute("/police/dashboard/:role");
-  const role = params?.role || "io";
+  const { user, logoutMutation } = useAuth();
+  const { reports } = useReports();
+  const { alerts } = useAlerts();
 
   if (!user) return null;
 
+  const roleLabels: Record<string, string> = {
+    police_io: "Investigating Officer",
+    police_oc: "Officer-in-Charge",
+    police_dpc: "District Commander",
+    admin: "System Admin"
+  };
+
+  const getDashboardConfig = (role: string) => {
+    switch (role) {
+      case "police_io":
+        return {
+          stats: [
+            { label: "My Cases", value: reports?.length || 0, icon: FileText, color: "blue" },
+            { label: "Pending Evidence", value: 3, icon: ClipboardCheck, color: "amber" },
+          ],
+          actions: [
+            { label: "Assigned Cases", icon: FileText, description: "Review and update investigation status" },
+            { label: "Citizen Chat", icon: MessageSquare, description: "Direct communication with reporters" },
+            { label: "Evidence Review", icon: ClipboardCheck, description: "Validate uploaded media and files" },
+          ]
+        };
+      case "police_oc":
+        return {
+          stats: [
+            { label: "Station Cases", value: reports?.length || 0, icon: Users, color: "blue" },
+            { label: "Active Officers", value: 8, icon: Shield, color: "green" },
+          ],
+          actions: [
+            { label: "Case Assignment", icon: UserPlus, description: "Assign investigations to IOs" },
+            { label: "Station Alerts", icon: AlertTriangle, description: "Broadcast localized safety alerts" },
+            { label: "Performance", icon: BarChart, description: "Monitor officer and case metrics" },
+          ]
+        };
+      case "police_dpc":
+        return {
+          stats: [
+            { label: "District Crime Rate", value: "-12%", icon: BarChart, color: "green" },
+            { label: "Total Stations", value: 14, icon: MapPin, color: "blue" },
+          ],
+          actions: [
+            { label: "District Analytics", icon: BarChart, description: "Deep dive into crime heatmaps" },
+            { label: "Resource Allocation", icon: Users, description: "Manage district-wide personnel" },
+            { label: "Policy Approval", icon: ClipboardCheck, description: "Digital form and PF sign-offs" },
+          ]
+        };
+      case "admin":
+        return {
+          stats: [
+            { label: "Total Users", value: 1250, icon: Users, color: "blue" },
+            { label: "System Status", value: "Optimal", icon: Shield, color: "green" },
+          ],
+          actions: [
+            { label: "User Management", icon: Users, description: "Provision and verify accounts" },
+            { label: "System Config", icon: Settings, description: "Update app parameters and keys" },
+            { label: "Security Logs", icon: Shield, description: "Monitor access and audit trails" },
+          ]
+        };
+      default:
+        return { stats: [], actions: [] };
+    }
+  };
+
+  const config = getDashboardConfig(user.role);
+
   return (
-    <MobileLayout>
-      <div className="bg-blue-700 text-white p-6 pb-24 rounded-b-[2.5rem] shadow-xl relative z-10">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-lg font-bold">
-              {user.username[0].toUpperCase()}
-            </div>
-            <div>
-              <p className="text-blue-100 text-xs uppercase tracking-wider font-semibold">
-                {role === 'dpc' ? 'District Commander' : role === 'oc' ? 'OC Station' : 'Investigating Officer'}
-              </p>
-              <h2 className="font-display font-bold text-xl">{user.fullName}</h2>
+    <MobileLayout className="bg-blue-50/30 min-h-screen">
+      <div className="p-6 pt-12 pb-24">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-blue-900">Hello, {user.fullName.split(' ')[0]}</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                {roleLabels[user.role]}
+              </Badge>
+              {user.stationId && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" /> {user.stationId}
+                </span>
+              )}
             </div>
           </div>
-          <Button size="icon" variant="ghost" className="text-white hover:bg-white/10 rounded-full" onClick={() => logout()}>
-            <LogOut className="w-5 h-5" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => logoutMutation.mutate()}
+            className="text-red-500 hover:text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-6 h-6" />
           </Button>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-blue-800/50 backdrop-blur-md p-3 rounded-xl border border-blue-500/30">
-            <div className="text-2xl font-bold mb-1">12</div>
-            <div className="text-xs text-blue-200">New Cases</div>
-          </div>
-          <div className="bg-blue-800/50 backdrop-blur-md p-3 rounded-xl border border-blue-500/30">
-            <div className="text-2xl font-bold mb-1">5</div>
-            <div className="text-xs text-blue-200">Pending</div>
-          </div>
-          <div className="bg-blue-800/50 backdrop-blur-md p-3 rounded-xl border border-blue-500/30">
-            <div className="text-2xl font-bold mb-1">28</div>
-            <div className="text-xs text-blue-200">Resolved</div>
-          </div>
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          {config.stats.map((stat, i) => (
+            <Card key={i} className="border-blue-100 shadow-sm overflow-hidden">
+              <CardContent className="p-4">
+                <stat.icon className={`w-5 h-5 mb-2 text-${stat.color}-600`} />
+                <div className="text-2xl font-bold text-blue-900">{stat.value}</div>
+                <div className="text-xs text-muted-foreground">{stat.label}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </div>
 
-      <div className="px-6 -mt-16 relative z-20 pb-20">
-        <h3 className="font-display font-bold text-lg mb-4 text-white">Recent Reports</h3>
-        
-        <div className="space-y-4">
-          {isLoading ? (
-            <div className="p-4 bg-white rounded-xl shadow-sm text-center text-muted-foreground">Loading cases...</div>
-          ) : reports?.map((report, idx) => (
-            <motion.div
-              key={report.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              className="bg-white p-4 rounded-xl shadow-sm border border-border hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-start mb-2">
-                <span className={`
-                  px-2 py-1 rounded-md text-xs font-medium uppercase
-                  ${report.priority === 'high' ? 'bg-red-100 text-red-700' : 'bg-blue-50 text-blue-700'}
-                `}>
-                  {report.type}
-                </span>
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {report.createdAt && formatDistanceToNow(new Date(report.createdAt), { addSuffix: true })}
-                </span>
-              </div>
-              
-              <h4 className="font-bold text-gray-900 mb-1">{report.title}</h4>
-              <p className="text-sm text-gray-500 line-clamp-2 mb-3">{report.description}</p>
-              
-              <div className="flex items-center justify-between pt-3 border-t">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3 h-3" />
-                  {report.location || "Unknown"}
+        {/* Alerts Strip */}
+        {alerts && alerts.length > 0 && (
+          <div className="mb-8">
+            <h2 className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500" /> Recent Alerts
+            </h2>
+            <div className="space-y-3">
+              {alerts.slice(0, 2).map((alert) => (
+                <div key={alert.id} className="bg-white p-3 rounded-xl border border-blue-100 flex gap-3 items-start">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0" />
+                  <div>
+                    <div className="text-sm font-medium text-blue-900">{alert.title}</div>
+                    <div className="text-xs text-muted-foreground line-clamp-1">{alert.content}</div>
+                  </div>
                 </div>
-                <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700 p-0">
-                  View Details <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Actions List */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-blue-900">Management Tools</h2>
+          {config.actions.map((action, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
+              className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <action.icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-blue-900">{action.label}</div>
+                  <div className="text-xs text-muted-foreground">{action.description}</div>
+                </div>
               </div>
+              <ChevronRight className="w-5 h-5 text-blue-300" />
             </motion.div>
           ))}
         </div>
