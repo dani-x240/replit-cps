@@ -196,11 +196,11 @@ export async function registerRoutes(
 async function seedDatabase() {
   const existingUsers = await storage.getUserByUsername("admin");
   if (!existingUsers) {
-    // 1. Citizen Demo
+    // 1. Citizen Demo (ogwang daiel)
     await storage.createUser({
-      username: "citizen_demo",
-      password: "password123",
-      fullName: "John Citizen",
+      username: "ogwang_daiel",
+      password: "btynatqnavry",
+      fullName: "Ogwang Daniel",
       role: "citizen",
       phone: "0700123456",
       nin: "CM123456789012",
@@ -209,25 +209,25 @@ async function seedDatabase() {
       isVerified: true
     });
 
-    // 2. IO Demo
+    // 2. IO Demo (otim joshua)
     await storage.createUser({
-      username: "io_demo",
-      password: "password123",
-      fullName: "Sgt. Sarah Namuli",
+      username: "otim_joshua",
+      password: "iam josh",
+      fullName: "Otim Joshua",
       role: "police_io",
-      email: "sarah.n@police.ug",
+      email: "otim.j@police.ug",
       phone: "0772111222",
       stationId: "CPS-KAMPALA",
       isVerified: true
     });
 
-    // 3. OC Demo
+    // 3. OC Demo (jowie)
     await storage.createUser({
-      username: "oc_demo",
-      password: "password123",
-      fullName: "Insp. David Okello",
+      username: "jowie",
+      password: "123456789",
+      fullName: "Officer Jowie",
       role: "police_oc",
-      email: "david.o@police.ug",
+      email: "jowie@police.ug",
       phone: "0782333444",
       stationId: "CPS-KAMPALA",
       isVerified: true

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { ArrowLeft, Loader2, Shield, UserPlus, LogIn } from "lucide-react";
+import { ArrowLeft, Loader2, Shield, UserPlus, LogIn, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -18,7 +18,7 @@ const loginSchema = z.object({
 
 const signupSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[0-9]/, "Password must contain at least one number"),
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   phone: z.string().min(1, "Phone number is required"),
@@ -29,6 +29,7 @@ export default function AuthPolice() {
   const [location, setLocation] = useLocation();
   const { login, register, isLoggingIn, isRegistering } = useAuth();
   const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
+  const [showPassword, setShowPassword] = useState(false);
   
   // Get role from query param
   const params = new URLSearchParams(window.location.search);
@@ -97,7 +98,16 @@ export default function AuthPolice() {
                   </div>
                   <div className="space-y-2">
                     <Label>Password</Label>
-                    <Input type="password" {...loginForm.register("password")} className="h-12 rounded-xl border-blue-100 focus:border-blue-500" />
+                    <div className="relative">
+                      <Input type={showPassword ? "text" : "password"} {...loginForm.register("password")} className="h-12 rounded-xl border-blue-100 focus:border-blue-500 pr-10" />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                     {loginForm.formState.errors.password && <span className="text-red-500 text-xs">{loginForm.formState.errors.password.message}</span>}
                   </div>
                   <Button disabled={isLoggingIn} className="w-full h-12 rounded-xl bg-blue-700 hover:bg-blue-800 text-lg font-semibold">

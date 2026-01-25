@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
@@ -19,6 +19,7 @@ const loginSchema = z.object({
 });
 
 const signupSchema = insertUserSchema.extend({
+  password: z.string().min(8, "Password must be at least 8 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[0-9]/, "Password must contain at least one number"),
   confirmPassword: z.string()
 }).refine(data => data.password === data.confirmPassword, {
   message: "Passwords must match",
@@ -29,6 +30,7 @@ export default function AuthCitizen() {
   const [, setLocation] = useLocation();
   const { login, register, isLoggingIn, isRegistering } = useAuth();
   const { toast } = useToast();
+  const [showPassword, setShowPassword] = useState(false);
   
   const loginForm = useForm({ resolver: zodResolver(loginSchema) });
   const signupForm = useForm({ 
@@ -73,7 +75,16 @@ export default function AuthCitizen() {
                 </div>
                 <div className="space-y-2">
                   <Label>Password</Label>
-                  <Input type="password" {...loginForm.register("password")} className="h-12 rounded-xl bg-white border-green-100 focus:border-green-500 focus:ring-green-500/20" />
+                  <div className="relative">
+                    <Input type={showPassword ? "text" : "password"} {...loginForm.register("password")} className="h-12 rounded-xl bg-white border-green-100 focus:border-green-500 focus:ring-green-500/20 pr-10" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
                   {loginForm.formState.errors.password && <span className="text-red-500 text-xs">{String(loginForm.formState.errors.password.message)}</span>}
                 </div>
                 <Button disabled={isLoggingIn} className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-lg font-semibold shadow-lg shadow-green-600/20">
@@ -123,12 +134,22 @@ export default function AuthCitizen() {
 
                 <div className="space-y-2">
                   <Label>Password</Label>
-                  <Input type="password" {...signupForm.register("password")} className="bg-white border-green-100 focus:border-green-500" />
+                  <div className="relative">
+                    <Input type={showPassword ? "text" : "password"} {...signupForm.register("password")} className="bg-white border-green-100 focus:border-green-500 pr-10" />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {signupForm.formState.errors.password && <span className="text-red-500 text-xs">{String(signupForm.formState.errors.password.message)}</span>}
                 </div>
 
                 <div className="space-y-2">
                   <Label>Confirm Password</Label>
-                  <Input type="password" {...signupForm.register("confirmPassword")} className="bg-white border-green-100 focus:border-green-500" />
+                  <Input type={showPassword ? "text" : "password"} {...signupForm.register("confirmPassword")} className="bg-white border-green-100 focus:border-green-500" />
                 </div>
 
                 <Button disabled={isRegistering} className="w-full h-12 rounded-xl bg-green-600 hover:bg-green-700 text-lg font-semibold shadow-lg shadow-green-600/20 mt-4">
