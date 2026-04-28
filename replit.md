@@ -43,11 +43,11 @@ Preferred communication style: Simple, everyday language.
 client/           # React frontend application
   src/
     components/   # Reusable UI components
-    pages/        # Route page components
+    pages/        # Route page components (CitizenSOS, CitizenChat, etc.)
     hooks/        # Custom React hooks for data fetching
     lib/          # Utilities and query client setup
 server/           # Express backend
-  routes.ts       # API route registration
+  routes.ts       # API route registration (incl. /api/sos endpoints)
   storage.ts      # Database access layer
   db.ts           # PostgreSQL connection
   replit_integrations/  # AI service integrations
@@ -55,6 +55,12 @@ shared/           # Shared types and schemas
   schema.ts       # Drizzle database schema
   routes.ts       # API contract definitions with Zod
 ```
+
+### Key Citizen Features
+- **SOS Emergency** (`/citizen/sos`): 3-second press-and-hold to trigger alert, 6-second window to choose Call 999 or Video record, automatic 30-second audio capture if no choice is made. GPS coordinates are sent with the alert.
+- **Invisible Mode**: Swipe up on the dashboard to enable anonymous reporting (swipe down to disable). UI switches to dark/anonymous styling.
+- **AI Crime Assistant** (`/citizen/chat`): Voice and text chat with the AI assistant for guidance and report drafting.
+- **Demo accounts**: `ogwang_daiel` / `btynatqnavry` (citizen), `otim_joshua` / `iam josh` (IO), `jowie` / `123456789` (OC), `dpc_demo` / `password123` (DPC), `admin` / `password123` (admin).
 
 ### Build System
 - Development: Vite dev server with HMR proxied through Express

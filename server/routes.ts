@@ -187,6 +187,53 @@ export async function registerRoutes(
     }
   });
 
+  // === SOS ===
+  // In-memory store for the demo. Real deployment would persist to DB / object storage.
+  const sosAlerts: any[] = [];
+  const sosRecordings = new Map<number, { kind: string; mimeType: string; size: number; receivedAt: string }[]>();
+
+  app.post("/api/sos", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    const id = sosAlerts.length + 1;
+    const alert = {
+      id,
+      userId: user.id,
+      fullName: user.fullName,
+      phone: user.phone,
+      district: user.district,
+      coords: req.body?.coords || null,
+      triggeredAt: req.body?.triggeredAt || new Date().toISOString(),
+      status: "active",
+    };
+    sosAlerts.push(alert);
+    console.log(`[SOS] Alert #${id} from ${user.fullName} at`, alert.coords);
+    res.status(201).json(alert);
+  });
+
+  app.post("/api/sos/recording", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const { alertId, kind, mimeType, dataBase64 } = req.body || {};
+    if (!alertId || !kind || !dataBase64) {
+      return res.status(400).json({ message: "Invalid recording payload" });
+    }
+    const size = Math.floor((dataBase64.length * 3) / 4);
+    const list = sosRecordings.get(alertId) || [];
+    list.push({ kind, mimeType, size, receivedAt: new Date().toISOString() });
+    sosRecordings.set(alertId, list);
+    console.log(`[SOS] Recording for #${alertId}: ${kind} (${size} bytes)`);
+    res.status(201).json({ ok: true });
+  });
+
+  app.get("/api/sos", (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (user.role === "citizen") {
+      return res.json(sosAlerts.filter((a) => a.userId === user.id));
+    }
+    res.json(sosAlerts);
+  });
+
   // Seed Data
   await seedDatabase();
 

@@ -13,6 +13,8 @@ import AuthCitizen from "@/pages/AuthCitizen";
 import AuthPolice from "@/pages/AuthPolice";
 import CitizenDashboard from "@/pages/CitizenDashboard";
 import CitizenReport from "@/pages/CitizenReport";
+import CitizenSOS from "@/pages/CitizenSOS";
+import CitizenChat from "@/pages/CitizenChat";
 import PoliceDashboard from "@/pages/PoliceDashboard";
 
 function Router() {
@@ -30,6 +32,8 @@ function Router() {
       {/* Protected Citizen Routes */}
       <Route path="/citizen/dashboard" component={CitizenDashboard} />
       <Route path="/citizen/report" component={CitizenReport} />
+      <Route path="/citizen/sos" component={CitizenSOS} />
+      <Route path="/citizen/chat" component={CitizenChat} />
       
       {/* Protected Police Routes */}
       <Route path="/police/dashboard/:role" component={PoliceDashboard} />
