@@ -234,6 +234,40 @@ export async function registerRoutes(
     res.json(sosAlerts);
   });
 
+  // Public anonymous quick emergency — used by the welcome notification
+  // so unauthenticated visitors can submit a quick video/photo alert.
+  app.post("/api/emergency/quick", async (req, res) => {
+    const { coords, mediaKind, mimeType, dataBase64, hasAudio } = req.body || {};
+    if (!mediaKind || !dataBase64) {
+      return res.status(400).json({ message: "media required" });
+    }
+    if (!["video", "photo"].includes(mediaKind)) {
+      return res.status(400).json({ message: "invalid mediaKind" });
+    }
+    const id = sosAlerts.length + 1;
+    const size = Math.floor((dataBase64.length * 3) / 4);
+    const alert = {
+      id,
+      userId: null,
+      fullName: "Anonymous",
+      phone: null,
+      district: null,
+      coords: coords || null,
+      triggeredAt: new Date().toISOString(),
+      status: "active",
+      anonymous: true,
+    };
+    sosAlerts.push(alert);
+    sosRecordings.set(id, [
+      { kind: mediaKind, mimeType: mimeType || "application/octet-stream", size, receivedAt: new Date().toISOString() },
+    ]);
+    console.log(
+      `[QUICK-SOS] Alert #${id} anonymous ${mediaKind}${hasAudio ? "+audio" : ""} (${size} bytes) at`,
+      coords,
+    );
+    res.status(201).json({ ok: true, alertId: id });
+  });
+
   // Seed Data
   await seedDatabase();
 
