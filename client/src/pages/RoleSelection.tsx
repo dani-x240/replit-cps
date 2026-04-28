@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { User, ShieldAlert } from "lucide-react";
+import { User, ShieldAlert, ArrowLeft } from "lucide-react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { RoleCard } from "@/components/ui/RoleCard";
 import { motion } from "framer-motion";
@@ -15,6 +15,13 @@ export default function RoleSelection() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 lg:mb-12 text-center lg:text-left"
         >
+          <button
+            onClick={() => setLocation("/")}
+            className="text-sm text-muted-foreground hover:text-foreground font-medium mb-4 inline-flex items-center gap-1 transition-colors"
+            data-testid="button-back-welcome"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Get Started
+          </button>
           <h1 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-2">
             Who are you?
           </h1>
