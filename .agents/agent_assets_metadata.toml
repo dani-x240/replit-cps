@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "LT_1GVxR2QlKWh0IbEf_f"
+uri = "file://DESIGN_SYSTEM.md"
+type = "text"
+title = "CPS Mobile — Design System & UI/UX Specification"
