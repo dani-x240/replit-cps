@@ -35,39 +35,45 @@ export default function PoliceRoles() {
   ];
 
   return (
-    <MobileLayout className="p-6 pt-12">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <button 
-          onClick={() => setLocation("/role-selection")}
-          className="text-sm text-police font-medium mb-4 flex items-center gap-1"
+    <MobileLayout phoneFrame={false} className="p-6 pt-12 lg:p-12 lg:pt-16">
+      <div className="max-w-6xl mx-auto w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 lg:mb-12"
         >
-          ← Back to Role Selection
-        </button>
-        <h1 className="text-3xl font-display font-bold text-foreground mb-2">Police Roles</h1>
-        <p className="text-muted-foreground">Select your specific department role to login.</p>
-      </motion.div>
-
-      <div className="space-y-4 pb-8">
-        {roles.map((role, index) => (
-          <motion.div
-            key={role.id}
-            initial={{ x: -20, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ delay: index * 0.1 }}
+          <button
+            onClick={() => setLocation("/role-selection")}
+            className="text-sm text-police font-medium mb-4 flex items-center gap-1"
           >
-            <RoleCard
-              title={role.title}
-              description={role.description}
-              icon={role.icon}
-              color="police"
-              onClick={() => setLocation(`/auth/police?role=${role.id}`)}
-            />
-          </motion.div>
-        ))}
+            ← Back to Role Selection
+          </button>
+          <h1 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-2">
+            Police Roles
+          </h1>
+          <p className="text-muted-foreground lg:text-lg">
+            Select your specific department role to login.
+          </p>
+        </motion.div>
+
+        <div className="space-y-4 pb-8 md:space-y-0 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-2 lg:gap-6 xl:grid-cols-4">
+          {roles.map((role, index) => (
+            <motion.div
+              key={role.id}
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <RoleCard
+                title={role.title}
+                description={role.description}
+                icon={role.icon}
+                color="police"
+                onClick={() => setLocation(`/auth/police?role=${role.id}`)}
+              />
+            </motion.div>
+          ))}
+        </div>
       </div>
     </MobileLayout>
   );

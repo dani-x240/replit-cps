@@ -8,13 +8,13 @@ export default function Welcome() {
   const [, setLocation] = useLocation();
 
   return (
-    <MobileLayout>
-      <div className="h-screen flex flex-col items-center justify-between p-8 bg-[url('https://pixabay.com/get/g2e99c6c34a1968be53afad47cd468def7c5305206977625285d13233c51384cfc87a5e1812263093a319e8609891cc000a2254582e75bc9995e7d56c1f8b9f0b_1280.jpg')] bg-cover bg-center relative">
+    <MobileLayout phoneFrame={false}>
+      <div className="min-h-screen flex flex-col items-center justify-between p-8 lg:p-16 bg-[url('https://pixabay.com/get/g2e99c6c34a1968be53afad47cd468def7c5305206977625285d13233c51384cfc87a5e1812263093a319e8609891cc000a2254582e75bc9995e7d56c1f8b9f0b_1280.jpg')] bg-cover bg-center relative">
         {/* Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40" />
 
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center pt-20 w-full">
+        <div className="relative z-10 flex flex-col items-center pt-20 w-full max-w-xl mx-auto">
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}

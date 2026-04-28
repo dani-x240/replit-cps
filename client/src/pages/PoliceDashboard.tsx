@@ -93,8 +93,8 @@ export default function PoliceDashboard() {
   const config = getDashboardConfig(user.role);
 
   return (
-    <MobileLayout className="bg-blue-50/30 min-h-screen">
-      <div className="p-6 pt-12 pb-24">
+    <MobileLayout phoneFrame={false} className="bg-blue-50/30 min-h-screen">
+      <div className="p-6 pt-12 pb-24 lg:p-12 max-w-7xl mx-auto w-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -121,7 +121,7 @@ export default function PoliceDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {config.stats.map((stat, i) => (
             <Card key={i} className="border-blue-100 shadow-sm overflow-hidden">
               <CardContent className="p-4">
@@ -154,14 +154,15 @@ export default function PoliceDashboard() {
         )}
 
         {/* Actions List */}
-        <div className="space-y-4">
-          <h2 className="text-sm font-semibold text-blue-900">Management Tools</h2>
+        <div>
+          <h2 className="text-sm font-semibold text-blue-900 mb-4">Management Tools</h2>
+          <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
           {config.actions.map((action, i) => (
             <motion.div
               key={i}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between group"
+              className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between group cursor-pointer"
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
@@ -175,6 +176,7 @@ export default function PoliceDashboard() {
               <ChevronRight className="w-5 h-5 text-blue-300" />
             </motion.div>
           ))}
+          </div>
         </div>
       </div>
     </MobileLayout>

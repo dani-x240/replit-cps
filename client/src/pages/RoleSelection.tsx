@@ -8,17 +8,22 @@ export default function RoleSelection() {
   const [, setLocation] = useLocation();
 
   return (
-    <MobileLayout className="p-6 pt-12">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-8"
-      >
-        <h1 className="text-3xl font-display font-bold text-foreground mb-2">Who are you?</h1>
-        <p className="text-muted-foreground">Select your role to continue to the appropriate portal.</p>
-      </motion.div>
+    <MobileLayout phoneFrame={false} className="p-6 pt-12 lg:p-12 lg:pt-20">
+      <div className="max-w-5xl mx-auto w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 lg:mb-12 text-center lg:text-left"
+        >
+          <h1 className="text-3xl lg:text-5xl font-display font-bold text-foreground mb-2">
+            Who are you?
+          </h1>
+          <p className="text-muted-foreground lg:text-lg">
+            Select your role to continue to the appropriate portal.
+          </p>
+        </motion.div>
 
-      <div className="space-y-4">
+        <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6">
         <motion.div
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -46,6 +51,7 @@ export default function RoleSelection() {
             onClick={() => setLocation("/police/roles")}
           />
         </motion.div>
+        </div>
       </div>
     </MobileLayout>
   );

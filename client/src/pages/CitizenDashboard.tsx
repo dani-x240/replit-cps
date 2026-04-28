@@ -61,9 +61,12 @@ export default function CitizenDashboard() {
   const bgClass = invisibleMode ? "bg-neutral-900 text-white" : "bg-green-50/30";
 
   return (
-    <MobileLayout className={`${bgClass} min-h-screen transition-colors duration-500`}>
+    <MobileLayout
+      phoneFrame={false}
+      className={`${bgClass} min-h-screen transition-colors duration-500`}
+    >
       <motion.div
-        className="p-6 pt-12 pb-24"
+        className="p-6 pt-12 pb-24 lg:p-12 max-w-6xl mx-auto w-full"
         drag="y"
         dragConstraints={{ top: 0, bottom: 0 }}
         dragElastic={0.2}
@@ -129,21 +132,21 @@ export default function CitizenDashboard() {
         </AnimatePresence>
 
         {/* SOS Button */}
-        <motion.div whileTap={{ scale: 0.95 }} className="mb-8">
+        <motion.div whileTap={{ scale: 0.95 }} className="mb-8 lg:max-w-2xl lg:mx-auto">
           <Button
-            className="w-full h-32 rounded-3xl bg-red-600 hover:bg-red-700 shadow-xl shadow-red-600/20 flex flex-col gap-2 group"
+            className="w-full h-32 lg:h-40 rounded-3xl bg-red-600 hover:bg-red-700 shadow-xl shadow-red-600/20 flex flex-col gap-2 group"
             onClick={() => setLocation("/citizen/sos")}
             data-testid="button-sos"
           >
-            <Siren className="w-12 h-12 text-white group-hover:animate-pulse" />
-            <span className="text-xl font-bold text-white uppercase tracking-wider">
+            <Siren className="w-12 h-12 lg:w-16 lg:h-16 text-white group-hover:animate-pulse" />
+            <span className="text-xl lg:text-2xl font-bold text-white uppercase tracking-wider">
               Emergency SOS
             </span>
           </Button>
         </motion.div>
 
         {/* Grid Menu */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {menuItems.map((item, i) => (
             <motion.div
               key={i}
