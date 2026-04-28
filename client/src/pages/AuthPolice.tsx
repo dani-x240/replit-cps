@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { ArrowLeft, Loader2, Shield, UserPlus, LogIn, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Loader2, Shield, UserPlus, LogIn, Eye, EyeOff, BadgeCheck, Lock } from "lucide-react";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -59,9 +59,49 @@ export default function AuthPolice() {
     admin: "System Admin"
   };
 
+  const sidePanel = (
+    <div className="w-full bg-gradient-to-br from-blue-700 via-blue-800 to-blue-900 text-white p-12 flex flex-col justify-between relative overflow-hidden">
+      <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-blue-500/20 blur-3xl" />
+      <div className="absolute -bottom-32 -left-20 w-96 h-96 rounded-full bg-blue-400/10 blur-3xl" />
+
+      <div className="relative">
+        <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center mb-8">
+          <Shield className="w-9 h-9 text-white" />
+        </div>
+        <h2 className="text-4xl font-display font-bold leading-tight mb-3">
+          Uganda Police Force
+        </h2>
+        <p className="text-blue-100/90 text-lg">
+          Secure command center for {roleLabels[role] || "officers"}.
+        </p>
+      </div>
+
+      <div className="relative space-y-4 mt-12">
+        <div className="flex items-start gap-3">
+          <BadgeCheck className="w-5 h-5 mt-0.5 text-blue-200 shrink-0" />
+          <div>
+            <p className="font-semibold">Role-based access</p>
+            <p className="text-sm text-blue-100/80">Cases, alerts, and tools tailored to your rank.</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <Lock className="w-5 h-5 mt-0.5 text-blue-200 shrink-0" />
+          <div>
+            <p className="font-semibold">Encrypted sessions</p>
+            <p className="text-sm text-blue-100/80">Every login is logged and audited.</p>
+          </div>
+        </div>
+      </div>
+
+      <p className="relative text-xs text-blue-200/70 mt-12">
+        © Uganda Police Force · CPS Mobile
+      </p>
+    </div>
+  );
+
   return (
-    <MobileLayout>
-      <div className="min-h-screen bg-blue-50/50">
+    <MobileLayout sidePanel={sidePanel}>
+      <div className="min-h-screen bg-blue-50/50 lg:bg-transparent lg:min-h-0">
         <div className="p-6 pt-8 pb-20">
           <Button variant="ghost" className="pl-0 hover:bg-transparent" onClick={() => setLocation("/police/roles")}>
             <ArrowLeft className="w-5 h-5 mr-2" />

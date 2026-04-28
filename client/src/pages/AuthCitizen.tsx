@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import { ArrowLeft, Loader2, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Loader2, Eye, EyeOff, ShieldCheck, Bell, Siren } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
@@ -48,9 +48,49 @@ export default function AuthCitizen() {
     register(rest);
   };
 
+  const sidePanel = (
+    <div className="w-full bg-gradient-to-br from-green-600 via-green-700 to-green-900 text-white p-12 flex flex-col justify-between relative overflow-hidden">
+      <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-green-400/20 blur-3xl" />
+      <div className="absolute -bottom-32 -left-20 w-96 h-96 rounded-full bg-emerald-300/10 blur-3xl" />
+
+      <div className="relative">
+        <div className="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center mb-8">
+          <ShieldCheck className="w-9 h-9 text-white" />
+        </div>
+        <h2 className="text-4xl font-display font-bold leading-tight mb-3">
+          Keep Uganda Safe
+        </h2>
+        <p className="text-green-50/90 text-lg">
+          Report crimes, get instant SOS help, and stay informed in your community.
+        </p>
+      </div>
+
+      <div className="relative space-y-4 mt-12">
+        <div className="flex items-start gap-3">
+          <Siren className="w-5 h-5 mt-0.5 text-green-200 shrink-0" />
+          <div>
+            <p className="font-semibold">One-tap SOS</p>
+            <p className="text-sm text-green-50/80">Press &amp; hold to alert police with your live GPS.</p>
+          </div>
+        </div>
+        <div className="flex items-start gap-3">
+          <Bell className="w-5 h-5 mt-0.5 text-green-200 shrink-0" />
+          <div>
+            <p className="font-semibold">Community alerts</p>
+            <p className="text-sm text-green-50/80">Real-time notices from your district police.</p>
+          </div>
+        </div>
+      </div>
+
+      <p className="relative text-xs text-green-100/70 mt-12">
+        Crime Prevention System · Citizen Portal
+      </p>
+    </div>
+  );
+
   return (
-    <MobileLayout>
-      <div className="min-h-screen bg-green-50/50">
+    <MobileLayout sidePanel={sidePanel}>
+      <div className="min-h-screen bg-green-50/50 lg:bg-transparent lg:min-h-0">
         <div className="p-6 pt-8">
           <Button variant="ghost" className="pl-0 hover:bg-transparent" onClick={() => setLocation("/role-selection")}>
             <ArrowLeft className="w-5 h-5 mr-2" />
