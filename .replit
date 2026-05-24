@@ -40,3 +40,9 @@ waitForPort = 5000
 
 [agent]
 integrations = ["javascript_openai_ai_integrations:2.0.0"]
+
+[userenv]
+
+[userenv.shared]
+SUPABASE_URL = "https://gylddfyhsiglfsmqnbvz.supabase.co"
+SUPABASE_PROJECT_REF = "gylddfyhsiglfsmqnbvz"
