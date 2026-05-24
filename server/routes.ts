@@ -11,6 +11,7 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { z } from "zod";
 import connectPgSimple from "connect-pg-simple";
 import { pool } from "./db";
+import crypto from "crypto";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -123,8 +124,24 @@ export async function registerRoutes(
     if (!req.isAuthenticated()) return res.status(401).send();
     try {
       const input = api.reports.create.input.parse(req.body);
-      // @ts-ignore
-      const report = await storage.createReport({ ...input, createdById: req.user.id });
+      const user = req.user as any;
+      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const rand = String(Math.floor(Math.random() * 99999)).padStart(5, "0");
+      const caseNumber = `CRI-${dateStr}-${rand}`;
+      const report = await storage.createReport({
+        ...input,
+        createdById: user.id,
+        caseNumber,
+        stationId: user.stationId || user.district || "Kampala Central",
+        status: "submitted",
+      });
+      await storage.addTimeline({
+        reportId: report.id,
+        action: "Report submitted",
+        actorName: user.fullName,
+        actorRole: user.role,
+        notes: `Case number ${caseNumber} created`,
+      });
       res.status(201).json(report);
     } catch (err) {
       if (err instanceof z.ZodError) {
@@ -144,28 +161,104 @@ export async function registerRoutes(
 
   app.patch(api.reports.update.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
-    // Add logic to check permissions (only police can update status, etc)
-    const report = await storage.updateReport(Number(req.params.id), req.body);
+    const user = req.user as any;
+    const id = Number(req.params.id);
+    const report = await storage.updateReport(id, req.body);
+    if (req.body.status) {
+      await storage.addTimeline({
+        reportId: id,
+        action: `Status updated to: ${req.body.status}`,
+        actorName: user.fullName,
+        actorRole: user.role,
+        notes: req.body.officerNotes || null,
+      });
+    }
     res.json(report);
+  });
+
+  app.patch("/api/reports/:id/assign", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (!["police_oc", "police_dpc", "admin"].includes(user.role)) {
+      return res.status(403).json({ message: "Insufficient permissions" });
+    }
+    const id = Number(req.params.id);
+    const { assignedToId, officerName } = req.body;
+    const report = await storage.updateReport(id, { assignedToId, status: "assigned" });
+    await storage.addTimeline({
+      reportId: id,
+      action: `Case assigned to officer`,
+      actorName: user.fullName,
+      actorRole: user.role,
+      notes: `Assigned to: ${officerName || assignedToId}`,
+    });
+    res.json(report);
+  });
+
+  app.get("/api/reports/:id/timeline", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const timeline = await storage.getTimeline(Number(req.params.id));
+    res.json(timeline);
+  });
+
+  app.get("/api/reports/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const msgs = await storage.getMessages(Number(req.params.id));
+    res.json(msgs);
+  });
+
+  app.post("/api/reports/:id/messages", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    const { content } = req.body;
+    if (!content?.trim()) return res.status(400).json({ message: "Content required" });
+    const msg = await (storage as any).createMessage({
+      reportId: Number(req.params.id),
+      senderId: user.id,
+      senderName: user.fullName,
+      senderRole: user.role,
+      content: content.trim(),
+    });
+    res.status(201).json(msg);
   });
 
   // Evidence
   app.post(api.evidence.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
     try {
-      const input = api.evidence.create.input.parse(req.body);
-      // @ts-ignore
-      const evidence = await storage.createEvidence({ ...input, uploadedById: req.user.id });
-      res.status(201).json(evidence);
+      const user = req.user as any;
+      const { reportId, fileUrl, fileType, description, fileName, dataBase64 } = req.body;
+      let sha256Hash: string | undefined;
+      if (dataBase64) {
+        sha256Hash = crypto.createHash("sha256").update(dataBase64).digest("hex");
+      }
+      const ev = await storage.createEvidence({
+        reportId: Number(reportId),
+        fileUrl: fileUrl || "uploaded",
+        fileType,
+        description,
+        fileName,
+        sha256Hash,
+        verificationStatus: "verified",
+        uploadedById: user.id,
+      });
+      res.status(201).json(ev);
     } catch (err) {
       res.status(400).json({ message: "Invalid input" });
     }
   });
 
+  app.get("/api/evidence/my", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    const ev = await storage.getAllEvidenceByUser(user.id);
+    res.json(ev);
+  });
+
   app.get(api.evidence.listByReport.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
-    const evidence = await storage.getEvidenceByReportId(Number(req.params.id));
-    res.json(evidence);
+    const ev = await storage.getEvidenceByReportId(Number(req.params.id));
+    res.json(ev);
   });
 
   // Alerts

@@ -75,6 +75,17 @@ export function registerChatRoutes(app: Express): void {
         content: m.content,
       }));
 
+      const systemMessage = {
+        role: "system" as const,
+        content: `You are the Uganda Police Force AI Crime Assistant. Your role is to:
+1. Help citizens report crimes clearly and completely
+2. Collect key details: crime type, exact location, date/time, suspect description, victim/witness info
+3. Provide safety guidance and reassurance
+4. Draft official incident summaries ready for submission
+Be empathetic, professional, and ask one focused clarifying question at a time.
+Always respond in English unless the user writes in another language.`,
+      };
+
       // Set up SSE
       res.setHeader("Content-Type", "text/event-stream");
       res.setHeader("Cache-Control", "no-cache");
@@ -82,10 +93,10 @@ export function registerChatRoutes(app: Express): void {
 
       // Stream response from OpenAI
       const stream = await openai.chat.completions.create({
-        model: "gpt-5.1",
-        messages: chatMessages,
+        model: "gpt-4.1",
+        messages: [systemMessage, ...chatMessages],
         stream: true,
-        max_completion_tokens: 2048,
+        max_completion_tokens: 1024,
       });
 
       let fullResponse = "";

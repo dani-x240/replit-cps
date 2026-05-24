@@ -20,11 +20,13 @@ import { Badge } from "@/components/ui/badge";
 import { useReports } from "@/hooks/use-reports";
 import { useAlerts } from "@/hooks/use-alerts";
 import { motion } from "framer-motion";
+import { useLocation } from "wouter";
 
 export default function PoliceDashboard() {
   const { user, logout } = useAuth();
   const { data: reports } = useReports();
   const { data: alerts } = useAlerts();
+  const [, setLocation] = useLocation();
 
   if (!user) return null;
 
@@ -40,49 +42,49 @@ export default function PoliceDashboard() {
       case "police_io":
         return {
           stats: [
-            { label: "My Cases", value: reports?.length || 0, icon: FileText, color: "blue" },
-            { label: "Pending Evidence", value: 3, icon: ClipboardCheck, color: "amber" },
+            { label: "Total Cases", value: reports?.length || 0, icon: FileText, color: "blue" },
+            { label: "Active SOS", value: 0, icon: ClipboardCheck, color: "amber" },
           ],
           actions: [
-            { label: "Assigned Cases", icon: FileText, description: "Review and update investigation status" },
-            { label: "Citizen Chat", icon: MessageSquare, description: "Direct communication with reporters" },
-            { label: "Evidence Review", icon: ClipboardCheck, description: "Validate uploaded media and files" },
+            { label: "Case Management", icon: FileText, description: "View, update and close cases", path: "/police/cases" },
+            { label: "Community Alerts", icon: AlertTriangle, description: "View police bulletins", path: "/citizen/alerts" },
+            { label: "Evidence Review", icon: ClipboardCheck, description: "Review uploaded evidence files", path: "/police/cases" },
           ]
         };
       case "police_oc":
         return {
           stats: [
-            { label: "Station Cases", value: reports?.length || 0, icon: Users, color: "blue" },
+            { label: "All Cases", value: reports?.length || 0, icon: Users, color: "blue" },
             { label: "Active Officers", value: 8, icon: Shield, color: "green" },
           ],
           actions: [
-            { label: "Case Assignment", icon: UserPlus, description: "Assign investigations to IOs" },
-            { label: "Station Alerts", icon: AlertTriangle, description: "Broadcast localized safety alerts" },
-            { label: "Performance", icon: BarChart, description: "Monitor officer and case metrics" },
+            { label: "Case Assignment", icon: UserPlus, description: "Assign cases to officers", path: "/police/cases" },
+            { label: "All Cases", icon: FileText, description: "View and manage station cases", path: "/police/cases" },
+            { label: "Community Alerts", icon: AlertTriangle, description: "View and post alerts", path: "/citizen/alerts" },
           ]
         };
       case "police_dpc":
         return {
           stats: [
-            { label: "District Crime Rate", value: "-12%", icon: BarChart, color: "green" },
+            { label: "District Cases", value: reports?.length || 0, icon: BarChart, color: "green" },
             { label: "Total Stations", value: 14, icon: MapPin, color: "blue" },
           ],
           actions: [
-            { label: "District Analytics", icon: BarChart, description: "Deep dive into crime heatmaps" },
-            { label: "Resource Allocation", icon: Users, description: "Manage district-wide personnel" },
-            { label: "Policy Approval", icon: ClipboardCheck, description: "Digital form and PF sign-offs" },
+            { label: "All Cases", icon: FileText, description: "District-wide case overview", path: "/police/cases" },
+            { label: "Community Alerts", icon: AlertTriangle, description: "Manage district bulletins", path: "/citizen/alerts" },
+            { label: "Policy Approval", icon: ClipboardCheck, description: "Digital form and PF sign-offs", path: "/police/cases" },
           ]
         };
       case "admin":
         return {
           stats: [
-            { label: "Total Users", value: 1250, icon: Users, color: "blue" },
+            { label: "Total Cases", value: reports?.length || 0, icon: Users, color: "blue" },
             { label: "System Status", value: "Optimal", icon: Shield, color: "green" },
           ],
           actions: [
-            { label: "User Management", icon: Users, description: "Provision and verify accounts" },
-            { label: "System Config", icon: Settings, description: "Update app parameters and keys" },
-            { label: "Security Logs", icon: Shield, description: "Monitor access and audit trails" },
+            { label: "All Cases", icon: FileText, description: "System-wide case management", path: "/police/cases" },
+            { label: "Community Alerts", icon: AlertTriangle, description: "Post system-wide alerts", path: "/citizen/alerts" },
+            { label: "Security Logs", icon: Shield, description: "Monitor access and audit trails", path: "/police/cases" },
           ]
         };
       default:
@@ -163,6 +165,7 @@ export default function PoliceDashboard() {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm flex items-center justify-between group cursor-pointer"
+              onClick={() => action.path && setLocation(action.path)}
             >
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">

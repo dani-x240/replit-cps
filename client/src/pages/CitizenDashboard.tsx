@@ -30,14 +30,12 @@ export default function CitizenDashboard() {
   if (!user) return null;
 
   const menuItems = [
-    { label: "Report Crime", icon: FileEdit, path: "/citizen/report" },
-    { label: "My Cases", icon: Briefcase, path: "/citizen/cases" },
-    { label: "Evidence Vault", icon: ShieldCheck, path: "/citizen/vault" },
-    { label: "Safety Map", icon: Map, path: "/citizen/map" },
-    { label: "Alerts Feed", icon: Bell, path: "/citizen/alerts" },
-    { label: "Police Forms", icon: FileText, path: "/citizen/forms" },
-    { label: "AI Assistant", icon: MessageSquare, path: "/citizen/chat" },
-    { label: "Settings", icon: Settings, path: "/citizen/settings" },
+    { label: "Report Crime",   icon: FileEdit,      path: "/citizen/report" },
+    { label: "My Cases",       icon: Briefcase,     path: "/citizen/cases" },
+    { label: "Evidence Vault", icon: ShieldCheck,   path: "/citizen/evidence" },
+    { label: "Alerts Feed",    icon: Bell,          path: "/citizen/alerts" },
+    { label: "Police Forms",   icon: FileText,      path: "/citizen/forms" },
+    { label: "AI Assistant",   icon: MessageSquare, path: "/citizen/chat" },
   ];
 
   const handleSwipe = (_: any, info: PanInfo) => {
