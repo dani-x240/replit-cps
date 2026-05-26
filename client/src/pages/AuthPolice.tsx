@@ -28,12 +28,13 @@ const signupSchema = z.object({
 export default function AuthPolice() {
   const [location, setLocation] = useLocation();
   const { login, register, isLoggingIn, isRegistering } = useAuth();
-  const [activeTab, setActiveTab] = useState<"login" | "signup">("login");
   const [showPassword, setShowPassword] = useState(false);
   
-  // Get role from query param
+  // Get role + tab from query params
   const params = new URLSearchParams(window.location.search);
   const role = params.get("role") || "police_io";
+  const defaultTab = (params.get("tab") === "signup" ? "signup" : "login") as "login" | "signup";
+  const [activeTab, setActiveTab] = useState<"login" | "signup">(defaultTab);
 
   const loginForm = useForm({ 
     resolver: zodResolver(loginSchema),

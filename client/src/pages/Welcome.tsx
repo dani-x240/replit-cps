@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Shield, ChevronRight, Siren, Bell, ShieldCheck } from "lucide-react";
+import { Shield, ChevronRight, Siren, Bell, ShieldCheck, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { EmergencyNotification } from "@/components/EmergencyNotification";
@@ -13,13 +13,10 @@ export default function Welcome() {
       <EmergencyNotification />
       <div
         className="min-h-screen w-full flex flex-col lg:flex-row"
-        style={{
-          background: "linear-gradient(135deg, #14532d 0%, #15803d 50%, #166534 100%)",
-        }}
+        style={{ background: "linear-gradient(135deg, #14532d 0%, #15803d 50%, #166534 100%)" }}
       >
         {/* ── Left / hero panel ── */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 py-16 lg:py-0 relative overflow-hidden">
-          {/* Decorative blobs */}
           <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-green-400/20 blur-3xl pointer-events-none" />
           <div className="absolute -bottom-24 -right-12 w-80 h-80 rounded-full bg-emerald-300/15 blur-3xl pointer-events-none" />
 
@@ -50,7 +47,7 @@ export default function Welcome() {
             Safety &amp; Security for Every Citizen of Uganda
           </motion.p>
 
-          {/* Feature pills — visible on larger screens */}
+          {/* Feature list — desktop only */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -58,9 +55,9 @@ export default function Welcome() {
             className="hidden lg:flex flex-col gap-4 w-full max-w-sm"
           >
             {[
-              { icon: Siren,      label: "One-tap SOS emergency alert with live GPS" },
-              { icon: Bell,       label: "Real-time community alerts from police" },
-              { icon: ShieldCheck,label: "Secure, verified crime reporting" },
+              { icon: Siren,       label: "One-tap SOS emergency alert with live GPS" },
+              { icon: Bell,        label: "Real-time community alerts from police" },
+              { icon: ShieldCheck, label: "Secure, verified crime reporting" },
             ].map(({ icon: Icon, label }, i) => (
               <div key={i} className="flex items-center gap-3 text-white/90">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
@@ -73,19 +70,32 @@ export default function Welcome() {
         </div>
 
         {/* ── Right / CTA panel ── */}
-        <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col justify-end lg:justify-center px-8 pb-12 pt-0 lg:py-16 gap-4">
+        <div className="w-full lg:w-[420px] xl:w-[480px] flex flex-col justify-end lg:justify-center px-8 pb-12 pt-0 lg:py-16 gap-3">
           <motion.div
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.55 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-3"
           >
+            {/* Sign In */}
             <Button
               size="lg"
               className="w-full h-14 text-base lg:text-lg font-semibold bg-white text-green-900 hover:bg-green-50 rounded-2xl shadow-xl"
               onClick={() => setLocation("/role-selection")}
             >
-              Get Started
-              <ChevronRight className="w-5 h-5 ml-2" />
+              <LogIn className="w-5 h-5 mr-2" />
+              Sign In
+            </Button>
+
+            {/* Sign Up */}
+            <Button
+              size="lg"
+              variant="outline"
+              className="w-full h-14 text-base lg:text-lg font-semibold border-2 border-white/30 text-white bg-white/10 hover:bg-white/20 rounded-2xl"
+              onClick={() => setLocation("/signup-role")}
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              Create Account
             </Button>
           </motion.div>
 
@@ -93,7 +103,7 @@ export default function Welcome() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-center text-white/40 text-sm"
+            className="text-center text-white/40 text-sm mt-2"
           >
             Uganda Police Force © 2025
           </motion.p>

@@ -5,14 +5,18 @@ import {
   type Message, type InsertMessage, type TimelineEntry, type InsertTimeline,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, ne } from "drizzle-orm";
 import { chatStorage, type IChatStorage } from "./replit_integrations/chat";
 
 export interface IStorage extends IChatStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   getPoliceByStation(stationId: string): Promise<User[]>;
+  getPendingUsers(): Promise<User[]>;
+  getAllUsers(): Promise<User[]>;
+  countAdmins(): Promise<number>;
 
   getReports(): Promise<Report[]>;
   getReport(id: number): Promise<Report | undefined>;
@@ -61,8 +65,22 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    const [user] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return user;
+  }
   async getPoliceByStation(stationId: string): Promise<User[]> {
     return db.select().from(users).where(eq(users.stationId, stationId));
+  }
+  async getPendingUsers(): Promise<User[]> {
+    return db.select().from(users).where(eq(users.accountStatus, "pending")).orderBy(desc(users.createdAt));
+  }
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users).orderBy(desc(users.createdAt));
+  }
+  async countAdmins(): Promise<number> {
+    const result = await db.select().from(users).where(eq(users.role, "admin"));
+    return result.length;
   }
 
   async getReports(): Promise<Report[]> {

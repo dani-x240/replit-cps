@@ -25,7 +25,7 @@ export async function registerRoutes(
       secret: process.env.SESSION_SECRET || "secret",
       resave: false,
       saveUninitialized: false,
-      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
     })
   );
 
@@ -38,6 +38,9 @@ export async function registerRoutes(
         const user = await storage.getUserByUsername(username);
         if (!user || user.password !== password) {
           return done(null, false, { message: "Invalid username or password" });
+        }
+        if (user.accountStatus === "rejected") {
+          return done(null, false, { message: "Your account has been rejected. Contact admin." });
         }
         return done(null, user);
       } catch (err) {
@@ -61,9 +64,8 @@ export async function registerRoutes(
   registerImageRoutes(app);
   registerAudioRoutes(app);
 
-  // === API ROUTES ===
+  // === AUTH ROUTES ===
 
-  // Auth
   app.post(api.auth.register.path, async (req, res, next) => {
     try {
       const input = api.auth.register.input.parse(req.body);
@@ -71,7 +73,23 @@ export async function registerRoutes(
       if (existing) {
         return res.status(400).json({ message: "Username already exists" });
       }
-      const user = await storage.createUser(input);
+
+      // Determine accountStatus based on role
+      let accountStatus = "approved";
+      if (input.role === "citizen") {
+        accountStatus = "approved";
+      } else if (input.role === "admin") {
+        // First admin is auto-approved; subsequent admins need approval
+        const adminCount = await storage.countAdmins();
+        accountStatus = adminCount === 0 ? "approved" : "pending";
+      } else {
+        // All police roles start as pending
+        accountStatus = "pending";
+      }
+
+      const user = await storage.createUser({ ...input, accountStatus });
+
+      // Log the user in regardless of status (frontend handles routing)
       req.login(user, (err) => {
         if (err) return next(err);
         res.status(201).json(user);
@@ -85,8 +103,17 @@ export async function registerRoutes(
     }
   });
 
-  app.post(api.auth.login.path, passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+  app.post(api.auth.login.path, (req, res, next) => {
+    passport.authenticate("local", (err: any, user: any, info: any) => {
+      if (err) return next(err);
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
+      }
+      req.login(user, (loginErr) => {
+        if (loginErr) return next(loginErr);
+        res.status(200).json(user);
+      });
+    })(req, res, next);
   });
 
   app.post(api.auth.logout.path, (req, res, next) => {
@@ -104,14 +131,46 @@ export async function registerRoutes(
     }
   });
 
-  // Reports
+  // === ADMIN USER MANAGEMENT ===
+
+  app.get("/api/admin/users", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
+    const allUsers = await storage.getAllUsers();
+    res.json(allUsers);
+  });
+
+  app.get("/api/admin/users/pending", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
+    const pending = await storage.getPendingUsers();
+    res.json(pending);
+  });
+
+  app.post("/api/admin/users/:id/approve", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
+    const updated = await storage.updateUser(Number(req.params.id), { accountStatus: "approved", isVerified: true });
+    res.json(updated);
+  });
+
+  app.post("/api/admin/users/:id/reject", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
+    const updated = await storage.updateUser(Number(req.params.id), { accountStatus: "rejected" });
+    res.json(updated);
+  });
+
+  // === REPORTS ===
+
   app.get(api.reports.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
-    // If citizen, only show their reports. If police, show all (or filtered).
-    // For simplicity MVP:
-    // @ts-ignore
     const user = req.user as any;
-    if (user.role === 'citizen') {
+    if (user.role === "citizen") {
       const reports = await storage.getReportsByUser(user.id);
       res.json(reports);
     } else {
@@ -222,7 +281,8 @@ export async function registerRoutes(
     res.status(201).json(msg);
   });
 
-  // Evidence
+  // === EVIDENCE ===
+
   app.post(api.evidence.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
     try {
@@ -261,19 +321,18 @@ export async function registerRoutes(
     res.json(ev);
   });
 
-  // Alerts
+  // === ALERTS ===
+
   app.get(api.alerts.list.path, async (req, res) => {
-    const alerts = await storage.getAlerts();
-    res.json(alerts);
+    const alertList = await storage.getAlerts();
+    res.json(alertList);
   });
 
   app.post(api.alerts.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
-    // Check if police/admin
     try {
       const input = api.alerts.create.input.parse(req.body);
-      // @ts-ignore
-      const alert = await storage.createAlert({ ...input, createdById: req.user.id });
+      const alert = await storage.createAlert({ ...input, createdById: (req.user as any).id });
       res.status(201).json(alert);
     } catch (err) {
       res.status(400).json({ message: "Invalid input" });
@@ -281,7 +340,6 @@ export async function registerRoutes(
   });
 
   // === SOS ===
-  // In-memory store for the demo. Real deployment would persist to DB / object storage.
   const sosAlerts: any[] = [];
   const sosRecordings = new Map<number, { kind: string; mimeType: string; size: number; receivedAt: string }[]>();
 
@@ -327,8 +385,6 @@ export async function registerRoutes(
     res.json(sosAlerts);
   });
 
-  // Public anonymous quick emergency — used by the welcome notification
-  // so unauthenticated visitors can submit a quick video/photo alert.
   app.post("/api/emergency/quick", async (req, res) => {
     const { coords, mediaKind, mimeType, dataBase64, hasAudio } = req.body || {};
     if (!mediaKind || !dataBase64) {
@@ -354,23 +410,19 @@ export async function registerRoutes(
     sosRecordings.set(id, [
       { kind: mediaKind, mimeType: mimeType || "application/octet-stream", size, receivedAt: new Date().toISOString() },
     ]);
-    console.log(
-      `[QUICK-SOS] Alert #${id} anonymous ${mediaKind}${hasAudio ? "+audio" : ""} (${size} bytes) at`,
-      coords,
-    );
+    console.log(`[QUICK-SOS] Alert #${id} anonymous ${mediaKind}${hasAudio ? "+audio" : ""} (${size} bytes) at`, coords);
     res.status(201).json({ ok: true, alertId: id });
   });
 
-  // Seed Data
+  // Seed
   await seedDatabase();
 
   return httpServer;
 }
 
 async function seedDatabase() {
-  const existingUsers = await storage.getUserByUsername("admin");
-  if (!existingUsers) {
-    // 1. Citizen Demo (ogwang daiel)
+  const existingAdmin = await storage.getUserByUsername("admin");
+  if (!existingAdmin) {
     await storage.createUser({
       username: "ogwang_daiel",
       password: "btynatqnavry",
@@ -380,10 +432,10 @@ async function seedDatabase() {
       nin: "CM123456789012",
       district: "Kampala",
       parish: "Central",
-      isVerified: true
+      isVerified: true,
+      accountStatus: "approved",
     });
 
-    // 2. IO Demo (otim joshua)
     await storage.createUser({
       username: "otim_joshua",
       password: "iam josh",
@@ -392,10 +444,10 @@ async function seedDatabase() {
       email: "otim.j@police.ug",
       phone: "0772111222",
       stationId: "CPS-KAMPALA",
-      isVerified: true
+      isVerified: true,
+      accountStatus: "approved",
     });
 
-    // 3. OC Demo (jowie)
     await storage.createUser({
       username: "jowie",
       password: "123456789",
@@ -404,10 +456,10 @@ async function seedDatabase() {
       email: "jowie@police.ug",
       phone: "0782333444",
       stationId: "CPS-KAMPALA",
-      isVerified: true
+      isVerified: true,
+      accountStatus: "approved",
     });
 
-    // 4. DPC Demo
     await storage.createUser({
       username: "dpc_demo",
       password: "password123",
@@ -416,10 +468,10 @@ async function seedDatabase() {
       email: "moses.m@police.ug",
       phone: "0752555666",
       stationId: "KAMPALA-METRO",
-      isVerified: true
+      isVerified: true,
+      accountStatus: "approved",
     });
 
-    // 5. Admin Demo
     const admin = await storage.createUser({
       username: "admin",
       password: "password123",
@@ -427,17 +479,17 @@ async function seedDatabase() {
       role: "admin",
       email: "admin@cps.ug",
       phone: "0700000000",
-      isVerified: true
+      isVerified: true,
+      accountStatus: "approved",
     });
 
-    // Create Initial Alerts
     await storage.createAlert({
       title: "Security Alert: Night Patrols",
       content: "Increased night patrols in Nakawa area starting 10PM.",
       type: "warning",
       severity: "warning",
       location: "Nakawa Division",
-      createdById: admin.id
+      createdById: admin.id,
     });
   }
 }

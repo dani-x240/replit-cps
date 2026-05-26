@@ -32,6 +32,9 @@ export default function AuthCitizen() {
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   
+  const params = new URLSearchParams(window.location.search);
+  const defaultTab = params.get("tab") === "signup" ? "signup" : "login";
+
   const loginForm = useForm({ resolver: zodResolver(loginSchema) });
   const signupForm = useForm({ 
     resolver: zodResolver(signupSchema),
@@ -100,7 +103,7 @@ export default function AuthCitizen() {
           <h1 className="text-3xl font-display font-bold text-green-900 mt-4 mb-2">Citizen Portal</h1>
           <p className="text-muted-foreground mb-8">Access emergency services and community safety tools.</p>
 
-          <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue={defaultTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8 bg-green-100/50">
               <TabsTrigger value="login" className="data-[state=active]:bg-white data-[state=active]:text-green-700">Login</TabsTrigger>
               <TabsTrigger value="signup" className="data-[state=active]:bg-white data-[state=active]:text-green-700">Sign Up</TabsTrigger>

@@ -3,6 +3,26 @@ import { api, type InsertUser, type LoginRequest } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 
+function routeAfterAuth(user: any, setLocation: (path: string) => void) {
+  if (user.role === "citizen") {
+    setLocation("/citizen/dashboard");
+    return;
+  }
+  if (user.accountStatus === "pending") {
+    setLocation("/pending-approval");
+    return;
+  }
+  if (user.accountStatus === "rejected") {
+    setLocation("/");
+    return;
+  }
+  if (user.role === "admin") {
+    setLocation("/admin/dashboard");
+    return;
+  }
+  setLocation(`/police/dashboard/${user.role}`);
+}
+
 export function useAuth() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -26,21 +46,20 @@ export function useAuth() {
         body: JSON.stringify(credentials),
         credentials: "include",
       });
-      
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Invalid username or password");
-        throw new Error("Login failed");
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Login failed");
       }
       return api.auth.login.responses[200].parse(await res.json());
     },
     onSuccess: (user) => {
       queryClient.setQueryData([api.auth.me.path], user);
-      toast({ title: "Welcome back!", description: `Logged in as ${user.username}` });
-      if (user.role === 'citizen') {
-        setLocation("/citizen/dashboard");
+      if (user.accountStatus === "pending") {
+        toast({ title: "Account pending", description: "Waiting for admin approval." });
       } else {
-        setLocation(`/police/dashboard/${user.role}`);
+        toast({ title: "Welcome back!", description: `Logged in as ${user.username}` });
       }
+      routeAfterAuth(user, setLocation);
     },
     onError: (error: Error) => {
       toast({ variant: "destructive", title: "Login failed", description: error.message });
@@ -55,20 +74,21 @@ export function useAuth() {
         body: JSON.stringify(data),
         credentials: "include",
       });
-
       if (!res.ok) {
-        if (res.status === 400) {
-          const error = api.auth.register.responses[400].parse(await res.json());
-          throw new Error(error.message);
-        }
-        throw new Error("Registration failed");
+        const error = await res.json().catch(() => ({ message: "Registration failed" }));
+        throw new Error(error.message);
       }
       return api.auth.register.responses[201].parse(await res.json());
     },
     onSuccess: (user) => {
       queryClient.setQueryData([api.auth.me.path], user);
-      toast({ title: "Account created!", description: "Welcome to CPS Mobile" });
-      setLocation("/citizen/dashboard");
+      if (user.accountStatus === "pending") {
+        toast({ title: "Account created!", description: "Awaiting admin approval before you can access the system." });
+        setLocation("/pending-approval");
+      } else {
+        toast({ title: "Account created!", description: "Welcome to CPS Mobile" });
+        routeAfterAuth(user, setLocation);
+      }
     },
     onError: (error: Error) => {
       toast({ variant: "destructive", title: "Registration failed", description: error.message });

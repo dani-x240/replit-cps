@@ -15,6 +15,7 @@ export const users = pgTable("users", {
   role: text("role").notNull(),
   nin: text("nin"),
   isVerified: boolean("is_verified").default(false),
+  accountStatus: text("account_status").default("approved"), // 'pending' | 'approved' | 'rejected'
   district: text("district"),
   parish: text("parish"),
   stationId: text("station_id"),
