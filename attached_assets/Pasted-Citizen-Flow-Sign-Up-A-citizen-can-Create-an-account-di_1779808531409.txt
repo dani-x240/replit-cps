@@ -1,0 +1,126 @@
+Citizen Flow
+Sign Up
+
+A citizen can:
+
+Create an account directly
+No admin approval needed
+After signup → automatically go to the Citizen Dashboard
+Sign In
+
+Existing citizens can:
+
+Sign in normally
+Go directly to the Citizen Dashboard
+Police Flow
+Sign Up
+
+Police users can:
+
+Register through a special Police Signup page
+
+BUT:
+
+Their account must first be approved by an Admin
+Until approved, they cannot fully access the dashboard
+Flow
+Police signs up
+Status = Pending
+Admin reviews request
+Admin approves/rejects
+If approved → Police Dashboard access enabled
+Sign In
+Police can sign in
+If approved → go to Police Dashboard
+If pending → show “Waiting for admin approval”
+Admin Flow
+Fast Admin Signup
+
+You mentioned:
+
+“for admin the fast signup must go through”
+
+So:
+
+The FIRST admin account can be created directly (initial setup)
+After that, any additional admin accounts must be approved by an existing admin
+Suggested Logic
+First Admin
+Can register directly
+Automatically approved
+Other Admins
+Admin signs up
+Status = Pending
+Existing admin approves
+Access granted
+IMPORTANT ISSUE YOU MENTIONED
+
+“after the welcome page I don’t see the choice of roles”
+
+You NEED a Role Selection Screen after pressing Sign Up.
+
+Correct Signup Structure
+Welcome Page
+
+Buttons:
+
+Sign In
+Sign Up
+After Clicking Sign Up
+
+Show:
+
+Sign up as Citizen
+Sign up as Police
+Sign up as Admin
+
+This is currently missing.
+
+Dashboard Routing
+Citizen
+
+After login/signup:
+
+→ Citizen Dashboard
+
+Police
+
+If approved:
+
+→ Police Dashboard
+
+If not approved:
+
+→ Pending Approval Screen
+
+Admin
+
+If approved:
+
+→ Admin Dashboard
+
+Responsive Design (VERY IMPORTANT)
+
+You said:
+
+“it matters to different screens do it well”
+
+So the dashboards and auth pages must work on:
+
+Desktop
+Tablet
+Mobile
+Recommended Responsive Layout
+Mobile
+Sidebar becomes hamburger menu
+Cards stack vertically
+Full-width buttons
+Large touch targets
+Tablet
+2-column layout
+Medium sidebar
+Desktop
+Full sidebar
+Multi-column dashboard
+Expanded tables/charts
+Recommended Folder Structure
