@@ -1,0 +1,23 @@
+{
+    "name": "CPS Mobile",
+    "short_name": "CPS Mobile",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#15803d",
+    "theme_color": "#15803d",
+    "description": "Crime Prevention System Mobile App",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

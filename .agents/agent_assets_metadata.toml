@@ -6,3 +6,9 @@ id = "LT_1GVxR2QlKWh0IbEf_f"
 uri = "file://DESIGN_SYSTEM.md"
 type = "text"
 title = "CPS Mobile — Design System & UI/UX Specification"
+
+[[outputs]]
+id = "yl6CAJaOwaza_0M8NFc6a"
+uri = "file://flutter_app.tar.gz"
+type = "unspecified"
+title = "CPS Mobile — Flutter App (flutter_app.tar.gz)"
