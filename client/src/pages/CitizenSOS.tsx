@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import { ArrowLeft, Siren, Phone, Video, Mic, Square, AlertTriangle, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Siren, Phone, Video, Mic, Square, AlertTriangle, ShieldCheck, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -143,8 +143,17 @@ export default function CitizenSOS() {
   const handleChooseCall = () => {
     clearChoiceTimers();
     setPhase("calling");
-    // Open dial for Uganda Police 999
     window.location.href = "tel:999";
+  };
+
+  const handleChooseSMS = () => {
+    clearChoiceTimers();
+    // Send pre-filled SMS to Uganda Police emergency line (+256 999)
+    const body = encodeURIComponent(
+      `EMERGENCY SOS\nLocation: ${coords ? `${coords.lat.toFixed(5)},${coords.lng.toFixed(5)}` : "unknown"}\nSent via CPS Mobile`
+    );
+    window.location.href = `sms:+256999?body=${body}`;
+    setPhase("sent");
   };
 
   const handleChooseVideo = async () => {
@@ -295,22 +304,10 @@ export default function CitizenSOS() {
                   Press and hold for 3 seconds to send SOS
                 </p>
                 <div className="relative">
-                  <svg className="absolute inset-0 -rotate-90" width="240" height="240">
+                  <svg className="absolute inset-0 -rotate-90 w-full h-full" viewBox="0 0 240 240">
+                    <circle cx="120" cy="120" r="110" fill="none" stroke="rgba(220,38,38,0.15)" strokeWidth="8" />
                     <circle
-                      cx="120"
-                      cy="120"
-                      r="110"
-                      fill="none"
-                      stroke="rgba(220,38,38,0.15)"
-                      strokeWidth="8"
-                    />
-                    <circle
-                      cx="120"
-                      cy="120"
-                      r="110"
-                      fill="none"
-                      stroke="#dc2626"
-                      strokeWidth="8"
+                      cx="120" cy="120" r="110" fill="none" stroke="#dc2626" strokeWidth="8"
                       strokeDasharray={`${(pressProgress / 100) * 691} 691`}
                       strokeLinecap="round"
                       style={{ transition: "stroke-dasharray 50ms linear" }}
@@ -322,11 +319,11 @@ export default function CitizenSOS() {
                     onMouseLeave={cancelPress}
                     onTouchStart={startPress}
                     onTouchEnd={cancelPress}
-                    className="w-60 h-60 rounded-full bg-red-600 active:bg-red-700 text-white shadow-2xl shadow-red-600/40 flex flex-col items-center justify-center gap-2 select-none"
+                    className="w-48 h-48 sm:w-60 sm:h-60 rounded-full bg-red-600 active:bg-red-700 text-white shadow-2xl shadow-red-600/40 flex flex-col items-center justify-center gap-2 select-none"
                     data-testid="button-sos-press"
                   >
-                    <Siren className="w-20 h-20" />
-                    <span className="text-2xl font-bold">SOS</span>
+                    <Siren className="w-14 h-14 sm:w-20 sm:h-20" />
+                    <span className="text-xl sm:text-2xl font-bold">SOS</span>
                   </button>
                 </div>
                 {phase === "pressing" && (
@@ -351,26 +348,34 @@ export default function CitizenSOS() {
                     Alert sent! Choose action ({choiceCountdown}s)
                   </p>
                 </div>
-                <div className="grid grid-cols-2 gap-4 w-full">
+                <div className="grid grid-cols-3 gap-3 w-full">
                   <Button
                     onClick={handleChooseCall}
-                    className="h-24 rounded-2xl bg-blue-600 hover:bg-blue-700 flex flex-col gap-2"
+                    className="h-24 rounded-2xl bg-blue-600 hover:bg-blue-700 flex flex-col gap-1.5 px-2"
                     data-testid="button-call-police"
                   >
-                    <Phone className="w-8 h-8" />
-                    <span>Call 999</span>
+                    <Phone className="w-7 h-7" />
+                    <span className="text-xs leading-tight">Call 999</span>
+                  </Button>
+                  <Button
+                    onClick={handleChooseSMS}
+                    className="h-24 rounded-2xl bg-orange-500 hover:bg-orange-600 flex flex-col gap-1.5 px-2"
+                    data-testid="button-sms-police"
+                  >
+                    <MessageSquare className="w-7 h-7" />
+                    <span className="text-xs leading-tight">SMS +256</span>
                   </Button>
                   <Button
                     onClick={handleChooseVideo}
-                    className="h-24 rounded-2xl bg-purple-600 hover:bg-purple-700 flex flex-col gap-2"
+                    className="h-24 rounded-2xl bg-purple-600 hover:bg-purple-700 flex flex-col gap-1.5 px-2"
                     data-testid="button-video-record"
                   >
-                    <Video className="w-8 h-8" />
-                    <span>Record Video</span>
+                    <Video className="w-7 h-7" />
+                    <span className="text-xs leading-tight">Record Video</span>
                   </Button>
                 </div>
                 <p className="text-xs text-neutral-500 text-center">
-                  No action will start audio recording automatically.
+                  No action → auto audio recording starts.
                 </p>
               </motion.div>
             )}

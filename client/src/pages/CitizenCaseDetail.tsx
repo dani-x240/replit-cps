@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, FileText, MessageCircle, Send, ShieldCheck, ShieldX } from "lucide-react";
+import { ArrowLeft, Clock, FileText, MessageCircle, Send, ShieldCheck, ShieldX, Camera, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { format } from "date-fns";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,6 +20,8 @@ export default function CitizenCaseDetail() {
   const [, setLocation] = useLocation();
   const [tab, setTab] = useState<"details" | "evidence" | "chat">("details");
   const [msg, setMsg] = useState("");
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const qc = useQueryClient();
 
   const { data: report } = useQuery<Report>({ queryKey: ["/api/reports", id] });
@@ -37,6 +39,34 @@ export default function CitizenCaseDetail() {
       qc.invalidateQueries({ queryKey: [`/api/reports/${id}/messages`] });
     },
   });
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingMedia(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = (reader.result as string).split(",")[1] || "";
+        const isVideo = file.type.startsWith("video/");
+        await apiRequest("POST", "/api/evidence", {
+          reportId: Number(id),
+          fileType: isVideo ? "video" : "image",
+          fileName: file.name,
+          mimeType: file.type,
+          dataBase64: base64,
+        });
+        await sendMsg.mutateAsync(`📎 ${isVideo ? "Video" : "Photo"} evidence attached: ${file.name}`);
+        qc.invalidateQueries({ queryKey: [`/api/evidence/${id}`] });
+      };
+      reader.readAsDataURL(file);
+    } catch {
+      // silent — message already sent describing the file
+    } finally {
+      setUploadingMedia(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   if (!report) return null;
 
@@ -189,7 +219,28 @@ export default function CitizenCaseDetail() {
                       </div>
                     ))}
                   </div>
-                  <div className="p-3 border-t flex gap-2">
+                  <div className="p-3 border-t flex gap-2 items-center">
+                    {/* Hidden file input for photo/video capture */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*,video/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={handleMediaUpload}
+                      data-testid="input-media-upload"
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="shrink-0 border-green-200 text-green-700 hover:bg-green-50"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingMedia}
+                      title="Attach photo or video"
+                      data-testid="button-attach-media"
+                    >
+                      {uploadingMedia ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                    </Button>
                     <input
                       value={msg}
                       onChange={e => setMsg(e.target.value)}
