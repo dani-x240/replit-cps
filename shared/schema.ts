@@ -1,21 +1,21 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
 export * from "./models/chat";
 
-// === USERS ===
-export const users = pgTable("users", {
+// === USERS (cps_users table to avoid conflict with Supabase auth users) ===
+export const users = pgTable("cps_users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  username: text("username").notNull().unique(), // phone for citizen, service_number for police
   password: text("password").notNull(),
   fullName: text("full_name").notNull(),
   email: text("email"),
   phone: text("phone"),
-  role: text("role").notNull(),
+  role: text("role").notNull().default("citizen"),
+  serviceNumber: text("service_number"),
   nin: text("nin"),
   isVerified: boolean("is_verified").default(false),
-  accountStatus: text("account_status").default("approved"), // 'pending' | 'approved' | 'rejected'
+  accountStatus: text("account_status").default("approved"),
   district: text("district"),
   parish: text("parish"),
   stationId: text("station_id"),
@@ -23,6 +23,12 @@ export const users = pgTable("users", {
 });
 
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true });
+
+// === VALID CITIZENS (NIN whitelist) ===
+export const validCitizens = pgTable("valid_citizens", {
+  nin: text("nin").primaryKey(),
+  fullName: text("full_name").notNull(),
+});
 
 // === REPORTS ===
 export const reports = pgTable("reports", {
@@ -76,7 +82,7 @@ export const alerts = pgTable("alerts", {
 
 export const insertAlertSchema = createInsertSchema(alerts).omit({ id: true, createdAt: true });
 
-// === MESSAGES (citizen ↔ police on a case) ===
+// === MESSAGES ===
 export const messages = pgTable("messages", {
   id: serial("id").primaryKey(),
   reportId: integer("report_id").notNull(),

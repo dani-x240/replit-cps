@@ -24,9 +24,9 @@ export default function Welcome() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-24 h-24 bg-white/15 backdrop-blur-md rounded-3xl flex items-center justify-center border border-white/20 shadow-2xl mb-8"
+            className="w-28 h-28 rounded-3xl overflow-hidden border border-white/20 shadow-2xl mb-8"
           >
-            <Shield className="w-12 h-12 text-yellow-300" />
+            <img src="/logo.png" alt="CPS Mobile" className="w-full h-full object-cover" />
           </motion.div>
 
           <motion.h1

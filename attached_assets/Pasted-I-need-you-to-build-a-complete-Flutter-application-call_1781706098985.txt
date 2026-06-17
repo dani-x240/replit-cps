@@ -1,0 +1,237 @@
+I need you to build a complete Flutter application called CPS Mobile (Citizen Police Safety System) for Uganda. This is a crime reporting and case tracking system.
+
+## SUPABASE CONNECTION (MUST USE THESE EXACT CREDENTIALS)
+
+SUPABASE_URL: https://gylddfyhsiglfsmqnbvz.supabase.co
+SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5bGRkZnloc2lnbGZzbXFuYnZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczNjIyNTAsImV4cCI6MjA5MjkzODI1MH0.cvNAwCwHNlXvq6na0bRKIMr8VRdP-ATA6-E6uqHZ4XM
+
+## YOUR TASK:
+
+1. SCAN my Supabase database first. Look at ALL existing tables to understand what is already created and what needs to be added.
+
+2. CONNECT the entire Flutter app to this Supabase backend. No Firebase. No mock data. Everything must use Supabase.
+
+3. BUILD the complete app with ALL features described below. Create a working Android APK at the end.
+
+## MANDATORY FEATURES TO INCLUDE:
+
+### AUTHENTICATION SYSTEM:
+
+**Citizen Sign Up:**
+- Citizens sign up using phone number + password
+- NO OTP verification (simplified entry)
+- After sign up, citizen is auto-approved and can login immediately
+- User record saved to Supabase with role = 'citizen'
+
+**Citizen Login:**
+- Phone number + password
+- Redirects to Citizen Dashboard
+
+**Police/Admin Login:**
+- Service number + password
+- Police CANNOT sign up through app (only created by admin)
+- Must check is_approved field before allowing login
+- If not approved, show: "Account pending approval. Contact your administrator."
+- Redirects to role-specific dashboard based on role field
+
+**First Admin Setup:**
+- Create first admin manually in Supabase with:
+  - service_number: 'ADMIN-001'
+  - role: 'hq_admin'
+  - is_approved: true
+
+### CITIZEN DASHBOARD FEATURES:
+
+1. SOS EMERGENCY BUTTON
+   - Press and hold for 3 seconds
+   - Captures GPS location
+   - Starts audio recording automatically
+   - Sends alert to nearest police station
+   - Works even without login (on Welcome Screen)
+
+2. REPORT CRIME
+   - Voice or text input
+   - Smart questions based on crime type
+   - Upload photos/videos/audio
+   - SHA-256 hashing for every file uploaded
+   - Submit to nearest police station
+
+3. MY CASES
+   - List of all cases reported
+   - Real-time status updates (Submitted, Assigned, On Way, Arrived, Investigating, Resolved)
+   - Color-coded status badges
+   - Complete timeline of all actions
+   - Chat with assigned officer
+
+4. EVIDENCE VAULT
+   - All uploaded evidence in one place
+   - SHA-256 hash displayed for each file
+   - VERIFY button to check if evidence has been tampered
+   - Green = Verified, Red = Tampered
+   - Copy hash to clipboard
+
+5. SAFETY MAP
+   - Google Maps style with transparent colored circles
+   - RED = High danger (10+ crimes)
+   - ORANGE = Medium danger (5-9 crimes)
+   - YELLOW = Low danger (1-4 crimes)
+   - GREEN = Safe area (0 crimes)
+   - Shows police station locations
+   - Your blue dot location
+
+6. COMMUNITY ALERTS FEED
+   - TikTok-style vertical scroll
+   - Police alerts (verified with blue badge)
+   - Citizen alerts (yellow pending badge)
+   - Citizens can post alerts
+   - Alerts need 3 community confirmations to become verified
+   - Emergency alerts trigger immediate police response
+
+7. POLICE FORMS
+   - PF3, PF24, PF18, Good Conduct forms
+   - Digital signature
+   - Submit to nearest police station
+
+8. CHAT WITH POLICE
+   - Secure messaging with assigned officer
+   - Read receipts
+   - Send photos, voice notes, location
+
+### POLICE OFFICER DASHBOARD (Level 1):
+
+- Assigned Cases list
+- Update case status (Received, On Way, Arrived, Investigating, Awaiting Citizen, Ready for Review)
+- View and verify evidence (SHA-256)
+- Respond to SOS alerts
+- Chat with citizens
+- View citizen location on map
+- End shift
+
+### POLICE COMMANDER DASHBOARD (Level 2):
+
+- All Station Officer features PLUS:
+- Assign cases to officers
+- Approve or request revisions
+- Escalate serious cases
+- Officer performance management
+- Station statistics
+
+### DISTRICT COMMANDER DASHBOARD (Level 3):
+
+- All Commander features PLUS:
+- View all stations in district
+- Compare station performance
+- Cross-station case transfer
+- District-wide analytics
+
+### INVESTIGATOR DASHBOARD (Level 3):
+
+- Escalated cases from commanders
+- Link multiple cases together
+- Request forensics (DNA, fingerprints, digital)
+- Prepare court dossiers
+- Witness management
+
+### HQ ADMIN DASHBOARD (Level 4):
+
+- Pending officer approvals
+- Create police officer accounts
+- National station management (all 245 stations)
+- Department management (CID, Cyber, Traffic, etc.)
+- National crime analytics
+- Complete audit log viewer (immutable)
+- National announcements
+- System settings
+
+### WELCOME SCREEN EMERGENCY CARD:
+
+- Red SOS card at the top
+- "Send Emergency" button - opens camera for photo/video
+- Works WITHOUT login
+- Sends to nearest police station
+- SHA-256 hashing of media
+
+### USSD SYSTEM:
+
+- *384*99932# for basic phones
+- Report crime
+- Emergency SOS
+- Check case status
+- Find nearest police station
+
+### EVIDENCE VAULT - SHA-256 HASHING:
+
+- Every uploaded file gets SHA-256 hash
+- Hash stored in database
+- Verify function checks if file has been tampered
+- Red "TAMPERED" warning if hash doesn't match
+
+### REAL-TIME UPDATES:
+
+- All status changes visible instantly
+- No refresh needed
+- Supabase Realtime subscriptions
+
+### SUPABASE TABLES NEEDED:
+
+1. users (auth_id, phone_number, email, full_name, nin, service_number, role, rank, station_id, is_approved, created_at, last_login)
+2. valid_citizens (nin, full_name) - PRE-POPULATE WITH THESE:
+   CF001201AMI888, Amina N.
+   CF020305GRA555, Grace K.
+   CF021102DEF002, Nabwire Rose
+   CF040808LIL333, Lilian O.
+   CF041204JKL004, Namukasa Sara
+   CF061206PQR006, Achan Lucy
+   CF070707RUT666, Ruth B.
+   CM010825OGW001, Ogwang Daniel
+   CM011201ABC001, Oguta Frank
+   CM020915WOD123, Wodelo Joshua
+   CM030412ENN456, Enin Marvin
+   CM030707PTE444, Peter L.
+   CM031203GHI003, Kato Michael
+   CM050610ELA222, Elayu Trevor
+   CM051205MNO005, Byaruhanga Tom
+   CM060606MAR111, Mark S.
+   CM071207STU007, Kasirye Ben
+   CM080808SIM000, Simon Q.
+   CM891231MYK777, Myokos Caleb
+   CM990701ETY999, Etyang Shaun
+3. police_stations (name, region, district, address, phone, latitude, longitude, is_active)
+4. cases (case_number, citizen_id, crime_type, description, location, latitude, longitude, status, assigned_officer_id, assigned_station_id, created_at, updated_at)
+5. evidence (case_id, file_name, file_url, file_type, sha256_hash, uploaded_by, uploaded_at, verification_status)
+6. sos_alerts (citizen_id, latitude, longitude, audio_recording_url, status, created_at)
+7. case_messages (case_id, sender_id, receiver_id, message, is_read, created_at)
+8. audit_log (user_id, user_role, action, entity_type, entity_id, old_value, new_value, created_at)
+9. officer_approvals (nin, full_name, service_number, email, phone_number, rank, role, requested_by, status, approved_by, approved_at)
+10. national_announcements (title, content, announcement_type, priority, target_audience, target_region_id, created_by, is_active, expires_at)
+11. system_settings (setting_key, setting_value, description, updated_by, updated_at)
+12. anonymous_emergencies (media_url, sha256_hash, latitude, longitude, location_name, station_id, status)
+
+### CONNECTION BETWEEN FEATURES:
+
+- Citizen reports crime → Creates case in Supabase → Police Commander sees unassigned case → Assigns to officer → Officer updates status → Citizen sees changes in real-time
+- Citizen uploads evidence → SHA-256 hash generated → Officer verifies → Citizen sees verification badge
+- Citizen triggers SOS → Police receive red banner → Officer responds → Citizen tracks officer on map
+- Officer completes case → Commander reviews → Approves or escalates → Case resolved or sent higher
+
+### LOGIN/SIGNOUT FLOW:
+
+- Sign Up: Citizens only (phone + password, NO OTP, auto-approved)
+- Sign In: Citizens (phone + password) OR Police/Admin (service number + password)
+- Sign Out: Clear session, return to Welcome Screen
+- Session persists across app restarts (Supabase Auth)
+
+### BUILD OUTPUT:
+
+After building the complete app, generate a working Android APK file that I can install on my phone.
+
+## INSTRUCTIONS:
+
+1. Scan my Supabase database to see what tables already exist
+2. Create any missing tables
+3. Build the complete Flutter app with ALL features described
+4. Connect everything to Supabase
+5. Test all features work
+6. Generate an Android APK
+
+Make sure EVERYTHING works together. No broken connections. No missing features. All data persists in Supabase.

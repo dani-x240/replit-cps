@@ -1,11 +1,11 @@
 import {
-  users, reports, evidence, alerts, messages, reportTimeline,
+  users, reports, evidence, alerts, messages, reportTimeline, validCitizens,
   type User, type InsertUser, type Report, type InsertReport,
   type Evidence, type InsertEvidence, type Alert, type InsertAlert,
   type Message, type InsertMessage, type TimelineEntry, type InsertTimeline,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, ne } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { chatStorage, type IChatStorage } from "./replit_integrations/chat";
 
 export interface IStorage extends IChatStorage {
@@ -17,6 +17,7 @@ export interface IStorage extends IChatStorage {
   getPendingUsers(): Promise<User[]>;
   getAllUsers(): Promise<User[]>;
   countAdmins(): Promise<number>;
+  getValidCitizen(nin: string): Promise<{ nin: string; fullName: string } | undefined>;
 
   getReports(): Promise<Report[]>;
   getReport(id: number): Promise<Report | undefined>;
@@ -81,6 +82,10 @@ export class DatabaseStorage implements IStorage {
   async countAdmins(): Promise<number> {
     const result = await db.select().from(users).where(eq(users.role, "admin"));
     return result.length;
+  }
+  async getValidCitizen(nin: string): Promise<{ nin: string; fullName: string } | undefined> {
+    const [row] = await db.select().from(validCitizens).where(eq(validCitizens.nin, nin));
+    return row;
   }
 
   async getReports(): Promise<Report[]> {

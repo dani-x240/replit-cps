@@ -22,22 +22,26 @@ export async function registerRoutes(
   app.use(
     session({
       store: new PgSession({ pool, createTableIfMissing: true }),
-      secret: process.env.SESSION_SECRET || "secret",
+      secret: process.env.SESSION_SECRET || "cps-secret-key-2026",
       resave: false,
       saveUninitialized: false,
-      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 },
+      cookie: { maxAge: 30 * 24 * 60 * 60 * 1000, secure: false },
     })
   );
 
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // Unified Passport strategy: username = phone (citizen) OR service_number (police/admin)
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
-        if (!user || user.password !== password) {
-          return done(null, false, { message: "Invalid username or password" });
+        if (!user) {
+          return done(null, false, { message: "No account found with these credentials." });
+        }
+        if (user.password !== password) {
+          return done(null, false, { message: "Incorrect password." });
         }
         if (user.accountStatus === "rejected") {
           return done(null, false, { message: "Your account has been rejected. Contact admin." });
@@ -53,7 +57,7 @@ export async function registerRoutes(
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      done(null, user);
+      done(null, user || null);
     } catch (err) {
       done(err);
     }
@@ -64,45 +68,54 @@ export async function registerRoutes(
   registerImageRoutes(app);
   registerAudioRoutes(app);
 
-  // === AUTH ROUTES ===
-
-  app.post(api.auth.register.path, async (req, res, next) => {
+  // === CITIZEN REGISTER ===
+  app.post("/api/auth/register/citizen", async (req, res, next) => {
     try {
-      const input = api.auth.register.input.parse(req.body);
-      const existing = await storage.getUserByUsername(input.username);
+      const { phone, fullName, nin, password, district, parish } = req.body;
+
+      if (!phone || !fullName || !nin || !password) {
+        return res.status(400).json({ message: "Phone, full name, NIN, and password are required." });
+      }
+      if (password.length < 8) {
+        return res.status(400).json({ message: "Password must be at least 8 characters." });
+      }
+
+      // Validate NIN against valid_citizens
+      const validCitizen = await storage.getValidCitizen(nin.toUpperCase().trim());
+      if (!validCitizen) {
+        return res.status(400).json({ message: "NIN not found in the national citizens register. Contact your local government office." });
+      }
+
+      // Phone is the unique identifier (username)
+      const phoneClean = phone.replace(/\s+/g, "").trim();
+      const existing = await storage.getUserByUsername(phoneClean);
       if (existing) {
-        return res.status(400).json({ message: "Username already exists" });
+        return res.status(400).json({ message: "An account with this phone number already exists." });
       }
 
-      // Determine accountStatus based on role
-      let accountStatus = "approved";
-      if (input.role === "citizen") {
-        accountStatus = "approved";
-      } else if (input.role === "admin") {
-        // First admin is auto-approved; subsequent admins need approval
-        const adminCount = await storage.countAdmins();
-        accountStatus = adminCount === 0 ? "approved" : "pending";
-      } else {
-        // All police roles start as pending
-        accountStatus = "pending";
-      }
+      const user = await storage.createUser({
+        username: phoneClean,
+        password,
+        fullName: validCitizen.fullName, // Use name from register
+        phone: phoneClean,
+        role: "citizen",
+        nin: nin.toUpperCase().trim(),
+        district: district || null,
+        parish: parish || null,
+        isVerified: true,
+        accountStatus: "approved",
+      });
 
-      const user = await storage.createUser({ ...input, accountStatus });
-
-      // Log the user in regardless of status (frontend handles routing)
       req.login(user, (err) => {
         if (err) return next(err);
-        res.status(201).json(user);
+        res.status(201).json(sanitizeUser(user));
       });
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        res.status(400).json({ message: err.errors[0].message });
-      } else {
-        next(err);
-      }
+    } catch (err: any) {
+      next(err);
     }
   });
 
+  // === UNIFIED LOGIN ===
   app.post(api.auth.login.path, (req, res, next) => {
     passport.authenticate("local", (err: any, user: any, info: any) => {
       if (err) return next(err);
@@ -111,7 +124,7 @@ export async function registerRoutes(
       }
       req.login(user, (loginErr) => {
         if (loginErr) return next(loginErr);
-        res.status(200).json(user);
+        res.status(200).json(sanitizeUser(user));
       });
     })(req, res, next);
   });
@@ -125,20 +138,19 @@ export async function registerRoutes(
 
   app.get(api.auth.me.path, (req, res) => {
     if (req.isAuthenticated()) {
-      res.json(req.user);
+      res.json(sanitizeUser(req.user as any));
     } else {
       res.json(null);
     }
   });
 
   // === ADMIN USER MANAGEMENT ===
-
   app.get("/api/admin/users", async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
     const user = req.user as any;
     if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
     const allUsers = await storage.getAllUsers();
-    res.json(allUsers);
+    res.json(allUsers.map(sanitizeUser));
   });
 
   app.get("/api/admin/users/pending", async (req, res) => {
@@ -146,7 +158,7 @@ export async function registerRoutes(
     const user = req.user as any;
     if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
     const pending = await storage.getPendingUsers();
-    res.json(pending);
+    res.json(pending.map(sanitizeUser));
   });
 
   app.post("/api/admin/users/:id/approve", async (req, res) => {
@@ -154,7 +166,7 @@ export async function registerRoutes(
     const user = req.user as any;
     if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
     const updated = await storage.updateUser(Number(req.params.id), { accountStatus: "approved", isVerified: true });
-    res.json(updated);
+    res.json(sanitizeUser(updated));
   });
 
   app.post("/api/admin/users/:id/reject", async (req, res) => {
@@ -162,20 +174,45 @@ export async function registerRoutes(
     const user = req.user as any;
     if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
     const updated = await storage.updateUser(Number(req.params.id), { accountStatus: "rejected" });
-    res.json(updated);
+    res.json(sanitizeUser(updated));
+  });
+
+  // Admin creates police officer account
+  app.post("/api/admin/users/create-officer", async (req, res) => {
+    if (!req.isAuthenticated()) return res.status(401).send();
+    const user = req.user as any;
+    if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
+    const { serviceNumber, fullName, role, password, phone, email, stationId } = req.body;
+    if (!serviceNumber || !fullName || !role || !password) {
+      return res.status(400).json({ message: "Service number, full name, role, and password are required." });
+    }
+    const existing = await storage.getUserByUsername(serviceNumber);
+    if (existing) return res.status(400).json({ message: "Service number already exists." });
+    const officer = await storage.createUser({
+      username: serviceNumber,
+      password,
+      fullName,
+      role,
+      serviceNumber,
+      phone: phone || null,
+      email: email || null,
+      stationId: stationId || null,
+      isVerified: true,
+      accountStatus: "approved",
+    });
+    res.status(201).json(sanitizeUser(officer));
   });
 
   // === REPORTS ===
-
   app.get(api.reports.list.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
     const user = req.user as any;
     if (user.role === "citizen") {
-      const reports = await storage.getReportsByUser(user.id);
-      res.json(reports);
+      const rpts = await storage.getReportsByUser(user.id);
+      res.json(rpts);
     } else {
-      const reports = await storage.getReports();
-      res.json(reports);
+      const rpts = await storage.getReports();
+      res.json(rpts);
     }
   });
 
@@ -246,7 +283,7 @@ export async function registerRoutes(
     const report = await storage.updateReport(id, { assignedToId, status: "assigned" });
     await storage.addTimeline({
       reportId: id,
-      action: `Case assigned to officer`,
+      action: "Case assigned to officer",
       actorName: user.fullName,
       actorRole: user.role,
       notes: `Assigned to: ${officerName || assignedToId}`,
@@ -282,7 +319,6 @@ export async function registerRoutes(
   });
 
   // === EVIDENCE ===
-
   app.post(api.evidence.create.path, async (req, res) => {
     if (!req.isAuthenticated()) return res.status(401).send();
     try {
@@ -322,7 +358,6 @@ export async function registerRoutes(
   });
 
   // === ALERTS ===
-
   app.get(api.alerts.list.path, async (req, res) => {
     const alertList = await storage.getAlerts();
     res.json(alertList);
@@ -372,7 +407,6 @@ export async function registerRoutes(
     const list = sosRecordings.get(alertId) || [];
     list.push({ kind, mimeType, size, receivedAt: new Date().toISOString() });
     sosRecordings.set(alertId, list);
-    console.log(`[SOS] Recording for #${alertId}: ${kind} (${size} bytes)`);
     res.status(201).json({ ok: true });
   });
 
@@ -414,82 +448,11 @@ export async function registerRoutes(
     res.status(201).json({ ok: true, alertId: id });
   });
 
-  // Seed
-  await seedDatabase();
-
   return httpServer;
 }
 
-async function seedDatabase() {
-  const existingAdmin = await storage.getUserByUsername("admin");
-  if (!existingAdmin) {
-    await storage.createUser({
-      username: "ogwang_daiel",
-      password: "btynatqnavry",
-      fullName: "Ogwang Daniel",
-      role: "citizen",
-      phone: "0700123456",
-      nin: "CM123456789012",
-      district: "Kampala",
-      parish: "Central",
-      isVerified: true,
-      accountStatus: "approved",
-    });
-
-    await storage.createUser({
-      username: "otim_joshua",
-      password: "iam josh",
-      fullName: "Otim Joshua",
-      role: "police_io",
-      email: "otim.j@police.ug",
-      phone: "0772111222",
-      stationId: "CPS-KAMPALA",
-      isVerified: true,
-      accountStatus: "approved",
-    });
-
-    await storage.createUser({
-      username: "jowie",
-      password: "123456789",
-      fullName: "Officer Jowie",
-      role: "police_oc",
-      email: "jowie@police.ug",
-      phone: "0782333444",
-      stationId: "CPS-KAMPALA",
-      isVerified: true,
-      accountStatus: "approved",
-    });
-
-    await storage.createUser({
-      username: "dpc_demo",
-      password: "password123",
-      fullName: "SSP. Moses Mukasa",
-      role: "police_dpc",
-      email: "moses.m@police.ug",
-      phone: "0752555666",
-      stationId: "KAMPALA-METRO",
-      isVerified: true,
-      accountStatus: "approved",
-    });
-
-    const admin = await storage.createUser({
-      username: "admin",
-      password: "password123",
-      fullName: "CPS Administrator",
-      role: "admin",
-      email: "admin@cps.ug",
-      phone: "0700000000",
-      isVerified: true,
-      accountStatus: "approved",
-    });
-
-    await storage.createAlert({
-      title: "Security Alert: Night Patrols",
-      content: "Increased night patrols in Nakawa area starting 10PM.",
-      type: "warning",
-      severity: "warning",
-      location: "Nakawa Division",
-      createdById: admin.id,
-    });
-  }
+function sanitizeUser(user: any) {
+  if (!user) return null;
+  const { password, ...safe } = user;
+  return safe;
 }
