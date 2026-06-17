@@ -13,7 +13,7 @@ import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 
 const loginSchema = z.object({
-  serviceNumber: z.string().min(1, "Service number is required"),
+  phone: z.string().min(9, "Enter your phone number"),
   password: z.string().min(1, "Password is required"),
 });
 
@@ -35,15 +35,15 @@ export default function AuthPolice() {
 
   const loginForm = useForm({
     resolver: zodResolver(loginSchema),
-    defaultValues: { serviceNumber: "", password: "" },
+    defaultValues: { phone: "", password: "" },
   });
 
   const loginMutation = useMutation({
-    mutationFn: async (data: { serviceNumber: string; password: string }) => {
+    mutationFn: async (data: { phone: string; password: string }) => {
       const res = await fetch(api.auth.login.path, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: data.serviceNumber.trim(), password: data.password }),
+        body: JSON.stringify({ username: data.phone.replace(/\s+/g, "").trim(), password: data.password }),
         credentials: "include",
       });
       if (!res.ok) {
@@ -118,14 +118,14 @@ export default function AuthPolice() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <BadgeInfo className="w-4 h-4 text-blue-600" />
-                  Service Number
+                  Phone Number
                 </Label>
                 <Input
-                  {...loginForm.register("serviceNumber")}
-                  placeholder="e.g. ADMIN-001 or PO-12345"
+                  {...loginForm.register("phone")}
+                  placeholder="e.g. 0701234567"
                   className="h-12 rounded-xl border-blue-100 focus:border-blue-500"
                 />
-                {loginForm.formState.errors.serviceNumber && <span className="text-red-500 text-xs">{loginForm.formState.errors.serviceNumber.message}</span>}
+                {loginForm.formState.errors.phone && <span className="text-red-500 text-xs">{loginForm.formState.errors.phone.message}</span>}
               </div>
               <div className="space-y-2">
                 <Label>Password</Label>

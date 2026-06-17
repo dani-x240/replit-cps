@@ -384,8 +384,8 @@ export default function AdminDashboard() {
           {/* Admin credentials reminder */}
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-2xl text-sm">
             <p className="font-semibold text-blue-900 mb-1">First-time Admin Access</p>
-            <p className="text-blue-700">Default admin credentials: <strong>ADMIN-001</strong> / <strong>Admin@CPS2026</strong></p>
-            <p className="text-blue-600 text-xs mt-1">Change the password after first login by creating a new admin account.</p>
+            <p className="text-blue-700">Phone: <strong>0700000001</strong> · Password: <strong>Admin@CPS2026</strong></p>
+            <p className="text-blue-600 text-xs mt-1">All logins use phone number + password. Create officer accounts from this dashboard.</p>
           </div>
         </main>
       </div>

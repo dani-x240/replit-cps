@@ -183,18 +183,19 @@ export async function registerRoutes(
     const user = req.user as any;
     if (user.role !== "admin") return res.status(403).json({ message: "Admin only" });
     const { serviceNumber, fullName, role, password, phone, email, stationId } = req.body;
-    if (!serviceNumber || !fullName || !role || !password) {
-      return res.status(400).json({ message: "Service number, full name, role, and password are required." });
+    if (!phone || !fullName || !role || !password) {
+      return res.status(400).json({ message: "Phone number, full name, role, and password are required." });
     }
-    const existing = await storage.getUserByUsername(serviceNumber);
-    if (existing) return res.status(400).json({ message: "Service number already exists." });
+    const phoneClean = phone.replace(/\s+/g, "").trim();
+    const existing = await storage.getUserByUsername(phoneClean);
+    if (existing) return res.status(400).json({ message: "An account with this phone number already exists." });
     const officer = await storage.createUser({
-      username: serviceNumber,
+      username: phoneClean,   // phone is the login identifier
       password,
       fullName,
       role,
-      serviceNumber,
-      phone: phone || null,
+      serviceNumber: serviceNumber || null,
+      phone: phoneClean,
       email: email || null,
       stationId: stationId || null,
       isVerified: true,
