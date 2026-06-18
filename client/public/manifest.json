@@ -2,7 +2,7 @@
   "name": "CPS Mobile - Crime Prevention System",
   "short_name": "CPS Mobile",
   "description": "Safety & Security for Every Citizen of Uganda",
-  "start_url": "/",
+  "start_url": "/index.html",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0B0C10",
