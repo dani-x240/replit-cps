@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { Shield, ChevronRight, Siren, Bell, ShieldCheck, LogIn, UserPlus } from "lucide-react";
+import { Siren, Bell, ShieldCheck, LogIn, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { EmergencyNotification } from "@/components/EmergencyNotification";
@@ -13,18 +13,23 @@ export default function Welcome() {
       <EmergencyNotification />
       <div
         className="min-h-screen w-full flex flex-col lg:flex-row"
-        style={{ background: "linear-gradient(135deg, #14532d 0%, #15803d 50%, #166534 100%)" }}
+        style={{ background: "linear-gradient(180deg, #2A2D2F 0%, #0B0C10 100%)" }}
       >
         {/* ── Left / hero panel ── */}
         <div className="flex-1 flex flex-col items-center justify-center px-8 py-16 lg:py-0 relative overflow-hidden">
-          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full bg-green-400/20 blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-24 -right-12 w-80 h-80 rounded-full bg-emerald-300/15 blur-3xl pointer-events-none" />
+          {/* subtle glow blobs */}
+          <div className="absolute -top-24 -left-24 w-72 h-72 rounded-full pointer-events-none"
+               style={{ background: "radial-gradient(circle, rgba(229,9,20,0.12) 0%, transparent 70%)" }} />
+          <div className="absolute -bottom-24 -right-12 w-80 h-80 rounded-full pointer-events-none"
+               style={{ background: "radial-gradient(circle, rgba(255,204,0,0.08) 0%, transparent 70%)" }} />
 
+          {/* Logo with gold border */}
           <motion.div
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            className="w-28 h-28 rounded-3xl overflow-hidden border border-white/20 shadow-2xl mb-8"
+            className="w-28 h-28 rounded-3xl overflow-hidden shadow-2xl mb-8"
+            style={{ border: "2px solid #FFCC00", boxShadow: "0 0 32px rgba(255,204,0,0.25)" }}
           >
             <img src="/logo.png" alt="CPS Mobile" className="w-full h-full object-cover" />
           </motion.div>
@@ -33,7 +38,8 @@ export default function Welcome() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.25 }}
-            className="text-5xl lg:text-6xl font-display font-bold text-white text-center mb-3"
+            className="text-5xl lg:text-6xl font-display font-bold text-center mb-3"
+            style={{ color: "#FFFFFF" }}
           >
             CPS Mobile
           </motion.h1>
@@ -42,7 +48,8 @@ export default function Welcome() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.35 }}
-            className="text-green-100/80 text-center text-lg lg:text-xl max-w-sm mb-12"
+            className="text-center text-lg lg:text-xl max-w-sm mb-12"
+            style={{ color: "rgba(255,255,255,0.65)" }}
           >
             Safety &amp; Security for Every Citizen of Uganda
           </motion.p>
@@ -59,9 +66,10 @@ export default function Welcome() {
               { icon: Bell,        label: "Real-time community alerts from police" },
               { icon: ShieldCheck, label: "Secure, verified crime reporting" },
             ].map(({ icon: Icon, label }, i) => (
-              <div key={i} className="flex items-center gap-3 text-white/90">
-                <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
-                  <Icon className="w-4 h-4" />
+              <div key={i} className="flex items-center gap-3" style={{ color: "rgba(255,255,255,0.85)" }}>
+                <div className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
+                     style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,204,0,0.3)" }}>
+                  <Icon className="w-4 h-4" style={{ color: "#FFCC00" }} />
                 </div>
                 <span className="text-sm">{label}</span>
               </div>
@@ -77,22 +85,31 @@ export default function Welcome() {
             transition={{ delay: 0.5 }}
             className="space-y-3"
           >
-            {/* Sign In */}
+            {/* Sign In — white CTA */}
             <Button
               size="lg"
-              className="w-full h-14 text-base lg:text-lg font-semibold bg-white text-green-900 hover:bg-green-50 rounded-2xl shadow-xl"
+              className="w-full h-14 text-base lg:text-lg font-semibold rounded-2xl shadow-xl"
+              style={{ background: "#FFFFFF", color: "#0B0C10" }}
               onClick={() => setLocation("/role-selection")}
+              data-testid="button-signin"
             >
               <LogIn className="w-5 h-5 mr-2" />
               Sign In
             </Button>
 
-            {/* Sign Up */}
+            {/* Create Account — red accent */}
             <Button
               size="lg"
-              variant="outline"
-              className="w-full h-14 text-base lg:text-lg font-semibold border-2 border-white/30 text-white bg-white/10 hover:bg-white/20 rounded-2xl"
+              className="w-full h-14 text-base lg:text-lg font-semibold rounded-2xl"
+              style={{
+                background: "transparent",
+                border: "2px solid #E50914",
+                color: "#FFFFFF",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(229,9,20,0.15)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               onClick={() => setLocation("/signup-role")}
+              data-testid="button-create-account"
             >
               <UserPlus className="w-5 h-5 mr-2" />
               Create Account
@@ -103,7 +120,8 @@ export default function Welcome() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
-            className="text-center text-white/40 text-sm mt-2"
+            className="text-center text-sm mt-2"
+            style={{ color: "rgba(255,255,255,0.3)" }}
           >
             Uganda Police Force © 2025
           </motion.p>
