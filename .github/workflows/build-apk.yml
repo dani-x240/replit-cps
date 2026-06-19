@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install tsx globally
+        run: npm install -g tsx
+
       - name: Build web app
         run: npm run build
 
